@@ -1,0 +1,1699 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🎉 Fun Friday - Game Zone</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700;800;900&display=swap');
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* ==================== SIDEBAR ==================== */
+        .sidebar-toggle {
+            position: fixed; top: 20px; right: 20px; z-index: 999;
+            width: 50px; height: 50px; border-radius: 50%;
+            border: 1px solid rgba(255,255,255,0.15);
+            background: rgba(255,255,255,0.08); backdrop-filter: blur(15px);
+            color: white; font-size: 1.3rem; cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
+            transition: all 0.3s ease; box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+        }
+        .sidebar-toggle:hover { background: rgba(255,255,255,0.15); transform: scale(1.1); }
+        .sidebar-toggle .badge-count {
+            position: absolute; top: -4px; right: -4px; width: 20px; height: 20px;
+            border-radius: 50%; background: linear-gradient(135deg,#f093fb,#f5576c);
+            color: white; font-size: 0.6rem; font-weight: 700;
+            display: flex; align-items: center; justify-content: center;
+        }
+        .sidebar-overlay {
+            display: none; position: fixed; inset: 0;
+            background: rgba(0,0,0,0.5); backdrop-filter: blur(4px); z-index: 1000;
+        }
+        .sidebar-overlay.active { display: block; animation: fadeIn 0.3s ease; }
+        .sidebar {
+            position: fixed; top: 0; right: -420px; width: 400px; max-width: 90vw;
+            height: 100vh; background: linear-gradient(180deg,#1a1a2e 0%,#16213e 50%,#0f0c29 100%);
+            border-left: 1px solid rgba(255,255,255,0.08); z-index: 1001;
+            transition: right 0.4s cubic-bezier(0.175,0.885,0.32,1.275);
+            display: flex; flex-direction: column; box-shadow: -10px 0 40px rgba(0,0,0,0.5);
+        }
+        .sidebar.active { right: 0; }
+        .sidebar-header {
+            padding: 24px 22px 18px; border-bottom: 1px solid rgba(255,255,255,0.06);
+            display: flex; align-items: center; justify-content: space-between; flex-shrink: 0;
+        }
+        .sidebar-header h2 { color: #fff; font-size: 1.2rem; font-weight: 700; display: flex; align-items: center; gap: 8px; }
+        .sidebar-close {
+            width: 34px; height: 34px; border-radius: 50%;
+            border: 1px solid rgba(255,255,255,0.1); background: rgba(255,255,255,0.05);
+            color: rgba(255,255,255,0.6); font-size: 1rem; cursor: pointer;
+            display: flex; align-items: center; justify-content: center; transition: all 0.3s ease;
+        }
+        .sidebar-close:hover { background: rgba(255,107,107,0.2); border-color: rgba(255,107,107,0.3); color: #ff6b6b; }
+        .sidebar-body { flex: 1; overflow-y: auto; padding: 20px 22px; }
+        .sidebar-body::-webkit-scrollbar { width: 4px; }
+        .sidebar-body::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 4px; }
+        .sidebar-section { margin-bottom: 24px; }
+        .sidebar-section-title {
+            color: rgba(255,255,255,0.4); font-size: 0.7rem; text-transform: uppercase;
+            letter-spacing: 2px; margin-bottom: 12px; font-weight: 600;
+        }
+        .add-player-row { display: flex; gap: 8px; margin-bottom: 14px; }
+        .add-player-input {
+            flex: 1; padding: 10px 14px; border-radius: 12px;
+            border: 1px solid rgba(255,255,255,0.1); background: rgba(255,255,255,0.05);
+            color: #fff; font-family: 'Poppins', sans-serif; font-size: 0.85rem;
+            outline: none; transition: all 0.3s ease;
+        }
+        .add-player-input::placeholder { color: rgba(255,255,255,0.25); }
+        .add-player-input:focus { border-color: rgba(160,140,255,0.5); background: rgba(255,255,255,0.08); }
+        .add-player-btn {
+            width: 42px; height: 42px; border-radius: 12px; border: none;
+            background: linear-gradient(135deg,#a29bfe,#6c5ce7); color: white;
+            font-size: 1.2rem; cursor: pointer; display: flex; align-items: center;
+            justify-content: center; transition: all 0.3s ease; flex-shrink: 0;
+        }
+        .add-player-btn:hover { transform: scale(1.08); box-shadow: 0 4px 15px rgba(108,92,231,0.4); }
+        .bulk-add-row { display: flex; gap: 8px; margin-bottom: 6px; }
+        .bulk-add-input {
+            flex: 1; padding: 10px 14px; border-radius: 12px;
+            border: 1px solid rgba(255,255,255,0.1); background: rgba(255,255,255,0.05);
+            color: #fff; font-family: 'Poppins', sans-serif; font-size: 0.85rem;
+            outline: none; transition: all 0.3s ease; resize: none; height: 42px;
+        }
+        .bulk-add-input::placeholder { color: rgba(255,255,255,0.25); }
+        .bulk-add-input:focus { border-color: rgba(85,239,196,0.5); background: rgba(255,255,255,0.08); }
+        .bulk-add-btn {
+            width: 42px; height: 42px; border-radius: 12px; border: none;
+            background: linear-gradient(135deg,#55efc4,#00b894); color: white;
+            font-size: 0.9rem; cursor: pointer; display: flex; align-items: center;
+            justify-content: center; transition: all 0.3s ease; flex-shrink: 0;
+        }
+        .bulk-add-btn:hover { transform: scale(1.08); }
+        .input-hint { color: rgba(255,255,255,0.25); font-size: 0.65rem; margin-top: 4px; margin-bottom: 10px; }
+        .player-list-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+        .player-count { color: rgba(255,255,255,0.5); font-size: 0.75rem; font-weight: 600; }
+        .clear-all-btn {
+            padding: 4px 10px; border-radius: 8px; border: 1px solid rgba(255,107,107,0.2);
+            background: rgba(255,107,107,0.08); color: #ff6b6b; font-size: 0.65rem;
+            font-family: 'Poppins', sans-serif; font-weight: 600; cursor: pointer; transition: all 0.3s ease;
+        }
+        .clear-all-btn:hover { background: rgba(255,107,107,0.2); }
+        .player-list { display: flex; flex-direction: column; gap: 6px; max-height: 200px; overflow-y: auto; padding-right: 4px; }
+        .player-list::-webkit-scrollbar { width: 3px; }
+        .player-list::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 3px; }
+        .player-item {
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 8px 12px; background: rgba(255,255,255,0.04);
+            border: 1px solid rgba(255,255,255,0.05); border-radius: 10px;
+            transition: all 0.3s ease; animation: playerSlideIn 0.3s ease;
+        }
+        @keyframes playerSlideIn { from { opacity: 0; transform: translateX(20px); } to { opacity: 1; transform: translateX(0); } }
+        .player-item:hover { background: rgba(255,255,255,0.07); }
+        .player-info { display: flex; align-items: center; gap: 10px; }
+        .player-avatar {
+            width: 28px; height: 28px; border-radius: 50%; display: flex;
+            align-items: center; justify-content: center; font-size: 0.7rem;
+            font-weight: 700; color: white; flex-shrink: 0;
+        }
+        .player-name { color: rgba(255,255,255,0.8); font-size: 0.82rem; font-weight: 500; }
+        .player-remove {
+            width: 24px; height: 24px; border-radius: 50%; border: none;
+            background: transparent; color: rgba(255,255,255,0.2); font-size: 0.8rem;
+            cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.3s ease;
+        }
+        .player-remove:hover { background: rgba(255,107,107,0.2); color: #ff6b6b; }
+        .empty-state { text-align: center; padding: 25px 15px; color: rgba(255,255,255,0.2); font-size: 0.8rem; }
+        .empty-state .empty-icon { font-size: 2rem; margin-bottom: 8px; display: block; }
+        .team-section { margin-top: 10px; }
+        .team-controls { display: flex; gap: 6px; margin-bottom: 14px; flex-wrap: wrap; }
+        .team-btn {
+            flex: 1; min-width: 70px; padding: 9px 8px; border-radius: 10px;
+            border: 1px solid rgba(255,255,255,0.1); background: rgba(255,255,255,0.04);
+            color: rgba(255,255,255,0.6); font-family: 'Poppins', sans-serif;
+            font-size: 0.72rem; font-weight: 600; cursor: pointer; transition: all 0.3s ease; text-align: center;
+        }
+        .team-btn:hover { background: rgba(255,255,255,0.1); color: white; }
+        .team-btn.active { border-color: rgba(162,155,254,0.5); background: rgba(162,155,254,0.15); color: #a29bfe; }
+        .shuffle-btn {
+            width: 100%; padding: 11px; border-radius: 12px; border: none;
+            background: linear-gradient(135deg,#fd79a8,#e84393); color: white;
+            font-family: 'Poppins', sans-serif; font-size: 0.85rem; font-weight: 700;
+            cursor: pointer; transition: all 0.3s ease; display: flex;
+            align-items: center; justify-content: center; gap: 8px; margin-bottom: 16px;
+        }
+        .shuffle-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(232,67,147,0.4); }
+        .shuffle-btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+        .teams-display { display: flex; flex-direction: column; gap: 12px; }
+        .team-card { border-radius: 14px; overflow: hidden; border: 1px solid rgba(255,255,255,0.08); animation: teamCardIn 0.4s ease; }
+        @keyframes teamCardIn { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
+        .team-card-header { padding: 10px 14px; display: flex; align-items: center; justify-content: space-between; }
+        .team-card-title { font-size: 0.8rem; font-weight: 700; color: white; display: flex; align-items: center; gap: 6px; }
+        .team-card-count { font-size: 0.65rem; padding: 2px 8px; border-radius: 10px; background: rgba(255,255,255,0.15); color: rgba(255,255,255,0.8); font-weight: 600; }
+        .team-card-body { padding: 6px 14px 12px; display: flex; flex-direction: column; gap: 4px; }
+        .team-captain-row {
+            display: flex; align-items: center; gap: 8px; padding: 8px 12px;
+            background: rgba(255,215,0,0.06); border: 1px solid rgba(255,215,0,0.15);
+            border-radius: 10px; margin-bottom: 6px; animation: captainGlow 3s ease-in-out infinite;
+        }
+        @keyframes captainGlow { 0%,100% { box-shadow: 0 0 0 rgba(255,215,0,0); } 50% { box-shadow: 0 0 12px rgba(255,215,0,0.08); } }
+        .captain-crown { font-size: 1rem; filter: drop-shadow(0 1px 3px rgba(255,215,0,0.5)); animation: crownBounce 2s ease-in-out infinite; flex-shrink: 0; }
+        @keyframes crownBounce { 0%,100% { transform: translateY(0) rotate(0deg); } 25% { transform: translateY(-2px) rotate(-5deg); } 75% { transform: translateY(-1px) rotate(5deg); } }
+        .captain-info { display: flex; flex-direction: column; gap: 1px; flex: 1; min-width: 0; }
+        .captain-label { font-size: 0.55rem; text-transform: uppercase; letter-spacing: 1.5px; color: rgba(255,215,0,0.6); font-weight: 700; }
+        .captain-name { font-size: 0.8rem; font-weight: 700; color: rgba(255,255,255,0.9); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .captain-avatar {
+            width: 30px; height: 30px; border-radius: 50%; display: flex;
+            align-items: center; justify-content: center; font-size: 0.7rem;
+            font-weight: 700; color: white; flex-shrink: 0; border: 2px solid rgba(255,215,0,0.4);
+        }
+        .team-members-wrap { display: flex; flex-wrap: wrap; gap: 6px; }
+        .team-member {
+            padding: 4px 10px; border-radius: 8px; background: rgba(255,255,255,0.08);
+            color: rgba(255,255,255,0.75); font-size: 0.72rem; font-weight: 500;
+            display: flex; align-items: center; gap: 4px;
+        }
+        .team-member .member-dot { width: 6px; height: 6px; border-radius: 50%; }
+        .custom-team-row { display: flex; gap: 8px; align-items: center; margin-bottom: 14px; }
+        .custom-team-input {
+            width: 60px; padding: 8px 10px; border-radius: 10px;
+            border: 1px solid rgba(255,255,255,0.1); background: rgba(255,255,255,0.05);
+            color: #fff; font-family: 'Poppins', sans-serif; font-size: 0.85rem;
+            font-weight: 600; outline: none; text-align: center;
+        }
+        .custom-team-label { color: rgba(255,255,255,0.4); font-size: 0.78rem; }
+
+        /* ==================== MAIN PAGE ==================== */
+        .bg-particles { position: fixed; inset: 0; pointer-events: none; z-index: 0; overflow: hidden; }
+        .particle { position: absolute; border-radius: 50%; animation: floatUp linear infinite; opacity: 0.3; }
+        @keyframes floatUp { 0% { transform: translateY(100vh) rotate(0deg); opacity: 0; } 10% { opacity: 0.3; } 90% { opacity: 0.3; } 100% { transform: translateY(-10vh) rotate(720deg); opacity: 0; } }
+        #mainPage { position: relative; z-index: 1; }
+        #mainPage.hidden { display: none; }
+        .header { text-align: center; padding: 40px 20px 20px; }
+        .header-badge {
+            display: inline-block; background: linear-gradient(135deg,#ff6b6b,#feca57);
+            color: #1a1a2e; padding: 6px 20px; border-radius: 50px; font-size: 0.85rem;
+            font-weight: 700; letter-spacing: 2px; text-transform: uppercase;
+            margin-bottom: 15px; animation: pulse 2s ease-in-out infinite;
+        }
+        @keyframes pulse { 0%,100% { transform: scale(1); } 50% { transform: scale(1.05); } }
+        .header h1 {
+            font-size: 3.5rem; font-weight: 900;
+            background: linear-gradient(135deg,#fff,#a29bfe,#fd79a8,#ffeaa7,#55efc4);
+            background-size: 300% 300%; -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent; background-clip: text;
+            animation: gradientShift 4s ease infinite; line-height: 1.2;
+        }
+        @keyframes gradientShift { 0%,100% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } }
+        .header p { color: rgba(255,255,255,0.6); font-size: 1.1rem; margin-top: 10px; font-weight: 300; }
+        .stats-bar { display: flex; justify-content: center; gap: 40px; margin: 25px auto; padding: 15px 30px; max-width: 600px; }
+        .stat-item { text-align: center; }
+        .stat-number { font-size: 1.8rem; font-weight: 800; color: #feca57; }
+        .stat-label { font-size: 0.75rem; color: rgba(255,255,255,0.5); text-transform: uppercase; letter-spacing: 1px; }
+        .games-container { max-width: 1200px; margin: 0 auto; padding: 20px 30px 60px; }
+        .section-title { color: rgba(255,255,255,0.4); font-size: 0.8rem; text-transform: uppercase; letter-spacing: 3px; margin-bottom: 25px; padding-left: 5px; }
+        .games-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 25px; }
+        .game-card {
+            background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 20px; overflow: hidden; cursor: pointer;
+            transition: all 0.4s cubic-bezier(0.175,0.885,0.32,1.275); position: relative;
+        }
+        .game-card:hover { transform: translateY(-8px) scale(1.02); border-color: rgba(255,255,255,0.2); box-shadow: 0 20px 60px rgba(0,0,0,0.3), 0 0 40px var(--card-glow); }
+        .game-card.disabled {
+            cursor: not-allowed;
+            opacity: 0.78;
+        }
+        .game-card.disabled:hover {
+            transform: none;
+            border-color: rgba(255,255,255,0.08);
+            box-shadow: none;
+        }
+        .card-thumbnail { width: 100%; height: 200px; position: relative; overflow: hidden; display: flex; align-items: center; justify-content: center; }
+        .card-thumbnail .emoji-icon { font-size: 5rem; filter: drop-shadow(0 4px 15px rgba(0,0,0,0.3)); z-index: 1; position: relative; }
+        .card-content { padding: 20px 22px 22px; position: relative; z-index: 1; }
+        .card-content h3 { color: #fff; font-size: 1.25rem; font-weight: 700; margin-bottom: 6px; }
+        .card-content p { color: rgba(255,255,255,0.45); font-size: 0.85rem; line-height: 1.5; margin-bottom: 16px; }
+        .card-footer { display: flex; align-items: center; justify-content: space-between; }
+        .card-tags { display: flex; gap: 6px; flex-wrap: wrap; }
+        .tag { padding: 3px 10px; border-radius: 12px; font-size: 0.65rem; font-weight: 600; background: rgba(255,255,255,0.06); color: rgba(255,255,255,0.5); border: 1px solid rgba(255,255,255,0.06); }
+        .play-btn {
+            width: 42px; height: 42px; border-radius: 50%; border: none;
+            background: linear-gradient(135deg, var(--card-color1), var(--card-color2));
+            color: white; font-size: 1.1rem; cursor: pointer; display: flex;
+            align-items: center; justify-content: center; transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2); flex-shrink: 0;
+        }
+        .play-btn:hover { transform: scale(1.15); }
+        .game-card.disabled .play-btn {
+            opacity: 0.45;
+            cursor: not-allowed;
+            pointer-events: none;
+            transform: none;
+            box-shadow: none;
+        }
+        .players-badge {
+            position: absolute; top: 12px; left: 12px; padding: 4px 12px;
+            border-radius: 20px; font-size: 0.65rem; font-weight: 600;
+            backdrop-filter: blur(10px); background: rgba(255,255,255,0.15);
+            color: rgba(255,255,255,0.9); border: 1px solid rgba(255,255,255,0.15); z-index: 2;
+        }
+        .coming-soon-badge {
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            padding: 5px 12px;
+            border-radius: 999px;
+            font-size: 0.62rem;
+            font-weight: 800;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            background: rgba(15,12,41,0.75);
+            color: #ffe082;
+            border: 1px solid rgba(255,224,130,0.4);
+            backdrop-filter: blur(10px);
+            z-index: 2;
+        }
+        .card-thumbnail .pattern-overlay {
+            position: absolute; inset: 0; opacity: 0.1;
+            background-image: radial-gradient(circle at 20% 50%, white 1px, transparent 1px),
+                radial-gradient(circle at 80% 20%, white 1px, transparent 1px);
+            background-size: 60px 60px, 80px 80px;
+        }
+        /* Casino wheel thumbnail animations */
+        .casino-wheel-container { position: relative; width: 150px; height: 150px; z-index: 1; }
+        .casino-wheel {
+            width: 150px; height: 150px; border-radius: 50%; position: relative; overflow: hidden;
+            animation: casinoSpin 8s cubic-bezier(0.25,0.1,0.25,1) infinite;
+            box-shadow: 0 0 0 4px rgba(255,255,255,0.3), 0 0 30px rgba(0,0,0,0.3), inset 0 0 15px rgba(0,0,0,0.15);
+        }
+        .casino-wheel .wheel-face { width: 100%; height: 100%; border-radius: 50%; background: conic-gradient(#ff6b6b 0deg 45deg, #feca57 45deg 90deg, #55efc4 90deg 135deg, #a29bfe 135deg 180deg, #fd79a8 180deg 225deg, #00cec9 225deg 270deg, #fdcb6e 270deg 315deg, #6c5ce7 315deg 360deg); }
+        .casino-wheel .wheel-lines { position: absolute; inset: 0; border-radius: 50%; }
+        .casino-wheel .wheel-lines::before, .casino-wheel .wheel-lines::after { content: ''; position: absolute; background: rgba(255,255,255,0.4); }
+        .casino-wheel .wheel-lines::before { width: 1.5px; height: 100%; left: 50%; transform: translateX(-50%); }
+        .casino-wheel .wheel-lines::after { width: 100%; height: 1.5px; top: 50%; transform: translateY(-50%); }
+        .wheel-line-45, .wheel-line-135 { position: absolute; width: 1.5px; height: 100%; left: 50%; top: 0; background: rgba(255,255,255,0.4); }
+        .wheel-line-45 { transform: translateX(-50%) rotate(45deg); }
+        .wheel-line-135 { transform: translateX(-50%) rotate(135deg); }
+        .wheel-icon { position: absolute; font-size: 1rem; z-index: 2; }
+        .wheel-icon:nth-child(1) { top: 8%; left: 50%; transform: translateX(-50%); }
+        .wheel-icon:nth-child(2) { top: 18%; right: 10%; }
+        .wheel-icon:nth-child(3) { top: 50%; right: 5%; transform: translateY(-50%); }
+        .wheel-icon:nth-child(4) { bottom: 18%; right: 10%; }
+        .wheel-icon:nth-child(5) { bottom: 8%; left: 50%; transform: translateX(-50%); }
+        .wheel-icon:nth-child(6) { bottom: 18%; left: 10%; }
+        .wheel-icon:nth-child(7) { top: 50%; left: 5%; transform: translateY(-50%); }
+        .wheel-icon:nth-child(8) { top: 18%; left: 10%; }
+        .wheel-center { position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%); width: 30px; height: 30px; border-radius: 50%; background: linear-gradient(135deg,#fff,#ddd); box-shadow: 0 0 0 3px rgba(0,0,0,0.15); z-index: 5; display: flex; align-items: center; justify-content: center; }
+        .wheel-center-dot { width: 10px; height: 10px; border-radius: 50%; background: linear-gradient(135deg,#f5576c,#f093fb); }
+        .wheel-rim-dots { position: absolute; inset: 0; border-radius: 50%; }
+        .rim-dot { position: absolute; width: 5px; height: 5px; border-radius: 50%; background: rgba(255,255,255,0.7); }
+        .wheel-pointer { position: absolute; top: -8px; left: 50%; transform: translateX(-50%); z-index: 10; width: 0; height: 0; border-left: 10px solid transparent; border-right: 10px solid transparent; border-top: 20px solid #fff; animation: pointerBounce 1s ease-in-out infinite; }
+        @keyframes pointerBounce { 0%,100% { transform: translateX(-50%) translateY(0); } 50% { transform: translateX(-50%) translateY(3px); } }
+        .wheel-glow { position: absolute; top: -10px; left: -10px; width: calc(100% + 20px); height: calc(100% + 20px); border-radius: 50%; animation: glowPulse 2s ease-in-out infinite; }
+        @keyframes glowPulse { 0%,100% { box-shadow: 0 0 15px rgba(245,87,108,0.2); } 50% { box-shadow: 0 0 25px rgba(245,87,108,0.4); } }
+        @keyframes casinoSpin { 0% { transform: rotate(0deg); } 100% { transform: rotate(1800deg); } }
+        .game-card:hover .casino-wheel { animation: casinoSpinFast 2s linear infinite; }
+        @keyframes casinoSpinFast { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        .thumb-wheel .sparkle { position: absolute; width: 6px; height: 6px; background: white; border-radius: 50%; opacity: 0; animation: sparkleFloat 3s ease-in-out infinite; }
+        .thumb-wheel .sparkle:nth-child(1) { left: 8%; top: 20%; }
+        .thumb-wheel .sparkle:nth-child(2) { left: 88%; top: 15%; animation-delay: 0.8s; }
+        .thumb-wheel .sparkle:nth-child(3) { left: 5%; top: 75%; animation-delay: 1.6s; }
+        .thumb-wheel .sparkle:nth-child(4) { left: 90%; top: 70%; animation-delay: 0.4s; }
+        @keyframes sparkleFloat { 0%,100% { opacity: 0; transform: scale(0); } 50% { opacity: 0.9; transform: scale(1) translateY(-15px); } }
+        /* Other game card animations */
+        .thumb-antakshari .emoji-icon { animation: micBounce 2s ease-in-out infinite; }
+        @keyframes micBounce { 0%,100% { transform: translateY(0) rotate(-5deg); } 50% { transform: translateY(-15px) rotate(5deg); } }
+        .thumb-antakshari .sound-wave { position: absolute; border: 2px solid rgba(255,255,255,0.3); border-radius: 50%; width: 60px; height: 60px; opacity: 0; animation: soundWave 2.5s ease-out infinite; }
+        .thumb-antakshari .sound-wave:nth-child(2) { animation-delay: 0s; }
+        .thumb-antakshari .sound-wave:nth-child(3) { animation-delay: 0.8s; }
+        .thumb-antakshari .sound-wave:nth-child(4) { animation-delay: 1.6s; }
+        @keyframes soundWave { 0% { transform: scale(0.5); opacity: 0.7; } 100% { transform: scale(3); opacity: 0; } }
+        .thumb-charades .emoji-icon { animation: charadesWobble 3s ease-in-out infinite; }
+        @keyframes charadesWobble { 0%,100% { transform: rotate(-10deg) scale(1); } 25% { transform: rotate(10deg) scale(1.05); } 50% { transform: rotate(-5deg) scale(1); } 75% { transform: rotate(8deg) scale(1.03); } }
+        .thumb-charades .float-emoji { position: absolute; font-size: 1.5rem; opacity: 0; animation: floatEmoji 4s ease-in-out infinite; }
+        .thumb-charades .float-emoji:nth-child(2) { left: 12%; } .thumb-charades .float-emoji:nth-child(3) { left: 30%; animation-delay: 1s; } .thumb-charades .float-emoji:nth-child(4) { left: 55%; animation-delay: 2s; } .thumb-charades .float-emoji:nth-child(5) { left: 78%; animation-delay: 0.5s; }
+        @keyframes floatEmoji { 0% { transform: translateY(80px) scale(0); opacity: 0; } 50% { opacity: 0.8; transform: translateY(-10px) scale(1); } 100% { transform: translateY(-60px) scale(0.5); opacity: 0; } }
+        .thumb-emoji .emoji-icon { animation: emojiFlip 4s ease-in-out infinite; }
+        @keyframes emojiFlip { 0%,100% { transform: perspective(400px) rotateY(0deg); } 25% { transform: perspective(400px) rotateY(15deg) scale(1.05); } 75% { transform: perspective(400px) rotateY(-15deg) scale(1.05); } }
+        .thumb-emoji .shimmer { position: absolute; top: 0; left: -100%; width: 60%; height: 100%; background: linear-gradient(90deg, transparent, rgba(255,255,255,0.15), transparent); animation: shimmerSlide 3s ease-in-out infinite; }
+        @keyframes shimmerSlide { 0% { left: -60%; } 100% { left: 120%; } }
+        .thumb-emoji .mini-emoji { position: absolute; font-size: 1.3rem; opacity: 0; animation: miniEmojiBounce 5s ease-in-out infinite; }
+        .thumb-emoji .mini-emoji:nth-child(3) { top: 15%; left: 10%; } .thumb-emoji .mini-emoji:nth-child(4) { top: 60%; left: 15%; animation-delay: 1s; } .thumb-emoji .mini-emoji:nth-child(5) { top: 20%; right: 10%; animation-delay: 2s; }
+        @keyframes miniEmojiBounce { 0%,100% { opacity: 0; transform: scale(0); } 20% { opacity: 0.7; transform: scale(1); } 80% { opacity: 0; transform: scale(0.3); } }
+        .thumb-skribbl .emoji-icon { animation: skribblDraw 3s ease-in-out infinite; }
+        @keyframes skribblDraw { 0%,100% { transform: translate(0,0); } 20% { transform: translate(8px,-5px) rotate(5deg); } 40% { transform: translate(-5px,3px); } 60% { transform: translate(6px,6px); } 80% { transform: translate(-8px,-3px); } }
+        .thumb-skribbl .paint-splash { position: absolute; width: 12px; height: 12px; border-radius: 50%; opacity: 0; animation: paintSplash 4s ease-out infinite; }
+        .thumb-skribbl .paint-splash:nth-child(2) { background: #ff6b6b; left: 20%; top: 25%; } .thumb-skribbl .paint-splash:nth-child(3) { background: #feca57; left: 70%; top: 20%; animation-delay: 0.6s; } .thumb-skribbl .paint-splash:nth-child(4) { background: #a29bfe; left: 30%; top: 70%; animation-delay: 1.2s; }
+        @keyframes paintSplash { 0% { transform: scale(0); opacity: 0; } 20% { transform: scale(1.5); opacity: 0.8; } 100% { transform: scale(0.3); opacity: 0; } }
+
+        /* ==================== MODAL ==================== */
+        .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.7); backdrop-filter: blur(8px); z-index: 1000; align-items: center; justify-content: center; padding: 20px; }
+        .modal-overlay.active { display: flex; animation: fadeIn 0.3s ease; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        .modal-content { background: linear-gradient(135deg,#1a1a2e,#16213e); border: 1px solid rgba(255,255,255,0.1); border-radius: 24px; max-width: 500px; width: 100%; overflow: hidden; animation: slideUp 0.4s ease; }
+        @keyframes slideUp { from { transform: translateY(50px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+        .modal-header { height: 180px; display: flex; align-items: center; justify-content: center; position: relative; }
+        .modal-header .emoji-icon { font-size: 4.5rem; }
+        .modal-close { position: absolute; top: 15px; right: 15px; width: 36px; height: 36px; border-radius: 50%; border: 1px solid rgba(255,255,255,0.2); background: rgba(0,0,0,0.3); color: white; font-size: 1.2rem; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.3s ease; }
+        .modal-close:hover { background: rgba(255,107,107,0.5); }
+        .modal-body { padding: 28px; }
+        .modal-body h2 { color: #fff; font-size: 1.6rem; font-weight: 800; margin-bottom: 8px; }
+        .modal-body .modal-description { color: rgba(255,255,255,0.5); font-size: 0.9rem; line-height: 1.6; margin-bottom: 20px; }
+        .modal-rules { background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.06); border-radius: 16px; padding: 18px; margin-bottom: 22px; }
+        .modal-rules h4 { color: rgba(255,255,255,0.7); font-size: 0.75rem; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 12px; }
+        .modal-rules ul { list-style: none; padding: 0; }
+        .modal-rules ul li { color: rgba(255,255,255,0.55); font-size: 0.82rem; padding: 5px 0 5px 20px; position: relative; line-height: 1.5; }
+        .modal-rules ul li::before { content: '→'; position: absolute; left: 0; color: rgba(255,255,255,0.3); }
+        .modal-start-btn { width: 100%; padding: 14px; border-radius: 14px; border: none; font-family: 'Poppins', sans-serif; font-size: 1rem; font-weight: 700; color: white; cursor: pointer; transition: all 0.3s ease; text-transform: uppercase; letter-spacing: 2px; }
+        .modal-start-btn:hover { transform: translateY(-2px); }
+
+        /* ==================== WOF GAME SCREEN ==================== */
+        #wofGame { display: none; position: relative; z-index: 1; min-height: 100vh; padding: 12px; }
+        #wofGame.active { display: block; }
+        .wof-layout { max-width: 1300px; margin: 0 auto; }
+        .wof-top-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+        .wof-title { font-size: 1.1rem; font-weight: 800; color: #ffd700; }
+        .wof-btn { padding: 7px 14px; border-radius: 10px; border: none; font-family: 'Poppins', sans-serif; font-size: 0.75rem; font-weight: 600; cursor: pointer; transition: all 0.3s ease; }
+        .wof-btn:hover { transform: translateY(-1px); }
+        .wof-btn-back { background: rgba(255,255,255,0.08); color: rgba(255,255,255,0.7); border: 1px solid rgba(255,255,255,0.1); }
+        .wof-btn-end { background: rgba(255,107,107,0.15); color: #ff6b6b; border: 1px solid rgba(255,107,107,0.2); }
+        .wof-info-bar { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 8px; }
+        .wof-chip { padding: 5px 14px; border-radius: 20px; font-size: 0.73rem; font-weight: 600; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.08); color: rgba(255,255,255,0.6); }
+        .wof-chip b { color: #ffd700; }
+        .wof-status { padding: 10px 16px; border-radius: 12px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.06); margin-bottom: 10px; font-size: 0.85rem; text-align: center; line-height: 1.5; min-height: 44px; display: flex; align-items: center; justify-content: center; color: rgba(255,255,255,0.8); }
+        .wof-main { display: grid; grid-template-columns: 1fr 320px; gap: 14px; margin-bottom: 12px; }
+        /* Puzzle Board */
+        .wof-board {
+            background: linear-gradient(135deg,#0c1445,#1a237e,#0d47a1);
+            border: 3px solid #ffd700; border-radius: 16px; padding: 24px;
+            box-shadow: 0 0 30px rgba(255,215,0,0.1), inset 0 0 40px rgba(0,0,0,0.3);
+            min-height: 160px; display: flex; flex-direction: column;
+            align-items: center; justify-content: center; gap: 8px;
+        }
+        .wof-category { font-size: 0.7rem; color: #ffd700; text-transform: uppercase; letter-spacing: 2px; font-weight: 600; margin-bottom: 8px; }
+        .wof-puzzle-row { display: flex; gap: 4px; justify-content: center; flex-wrap: wrap; }
+        .wof-tile { width: 38px; height: 44px; border-radius: 4px; display: flex; align-items: center; justify-content: center; font-size: 1.15rem; font-weight: 800; transition: all 0.4s ease; }
+        .wof-tile-letter { background: linear-gradient(135deg,#1a237e,#283593); border: 1px solid rgba(255,215,0,0.3); color: transparent; user-select: none; }
+        .wof-tile-letter.revealed { background: linear-gradient(135deg,#e8eaf6,#fff); color: #1a237e; border-color: rgba(255,215,0,0.5); animation: tileReveal 0.5s ease; }
+        @keyframes tileReveal { 0% { transform: rotateY(90deg); opacity: 0.5; } 100% { transform: rotateY(0); opacity: 1; } }
+        .wof-tile-space { width: 16px; background: transparent; border: none; }
+        .wof-tile-punct { background: linear-gradient(135deg,#e8eaf6,#fff); border: 1px solid rgba(255,215,0,0.3); color: #1a237e; }
+        /* Teams Column */
+        .wof-teams-col { display: flex; flex-direction: column; gap: 10px; }
+        .wof-team-card {
+            background: rgba(255,255,255,0.04); border: 2px solid rgba(255,255,255,0.08);
+            border-radius: 14px; overflow: hidden; transition: all 0.4s ease; position: relative;
+        }
+        .wof-team-card.active-team { transform: translateY(-3px); }
+        .wof-team-card[data-t="0"] { border-color: rgba(255,107,107,0.3); }
+        .wof-team-card[data-t="1"] { border-color: rgba(0,206,201,0.3); }
+        .wof-team-card[data-t="2"] { border-color: rgba(254,202,87,0.3); }
+        .wof-team-card.active-team[data-t="0"] { border-color: #ff6b6b; box-shadow: 0 6px 25px rgba(255,107,107,0.2); }
+        .wof-team-card.active-team[data-t="1"] { border-color: #00cec9; box-shadow: 0 6px 25px rgba(0,206,201,0.2); }
+        .wof-team-card.active-team[data-t="2"] { border-color: #feca57; box-shadow: 0 6px 25px rgba(254,202,87,0.2); }
+        .wof-playing-badge { display: none; padding: 3px 10px; font-size: 0.58rem; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; text-align: center; animation: pulseGlow 1.5s ease-in-out infinite; }
+        .active-team .wof-playing-badge { display: block; }
+        .wof-team-card[data-t="0"] .wof-playing-badge { background: #ff6b6b; color: white; }
+        .wof-team-card[data-t="1"] .wof-playing-badge { background: #00cec9; color: white; }
+        .wof-team-card[data-t="2"] .wof-playing-badge { background: #feca57; color: #1a1a2e; }
+        @keyframes pulseGlow { 0%,100% { opacity: 1; } 50% { opacity: 0.7; } }
+        .wof-tc-header { padding: 10px 12px 6px; }
+        .wof-tc-header[data-t="0"] { background: rgba(255,107,107,0.08); }
+        .wof-tc-header[data-t="1"] { background: rgba(0,206,201,0.08); }
+        .wof-tc-header[data-t="2"] { background: rgba(254,202,87,0.08); }
+        .wof-tc-name { font-size: 0.82rem; font-weight: 700; }
+        .wof-tc-captain { font-size: 0.68rem; color: rgba(255,255,255,0.5); }
+        .wof-tc-members { font-size: 0.62rem; color: rgba(255,255,255,0.3); padding: 2px 12px; }
+        .wof-tc-scores { padding: 6px 12px 8px; display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+        .wof-score-box { text-align: center; padding: 5px; border-radius: 8px; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.05); }
+        .wof-score-label { font-size: 0.55rem; color: rgba(255,255,255,0.3); text-transform: uppercase; letter-spacing: 0.5px; }
+        .wof-score-val { font-size: 0.9rem; font-weight: 800; color: #ffd700; }
+        /* Wheel + Actions */
+        .wof-wheel-section { display: flex; flex-direction: column; align-items: center; gap: 10px; margin-bottom: 10px; }
+        .wof-wheel-wrap { position: relative; width: 420px; height: 420px; }
+        #wofWheelCanvas { width: 420px; height: 420px; transition: transform 4s cubic-bezier(0.17,0.67,0.12,0.99); }
+        .wof-pointer { position: absolute; top: -12px; left: 50%; transform: translateX(-50%); z-index: 10; width: 0; height: 0; border-left: 14px solid transparent; border-right: 14px solid transparent; border-top: 30px solid #d63031; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.5)); }
+        .wof-wheel-center { position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%); width: 62px; height: 62px; border-radius: 50%; background: linear-gradient(135deg,#ffd700,#f0a500); border: 4px solid #fff; display: flex; align-items: center; justify-content: center; font-size: 1.7rem; box-shadow: 0 0 15px rgba(255,215,0,0.3); z-index: 5; pointer-events: none; }
+        .wof-action-btns { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; }
+        .wof-act-btn { padding: 9px 20px; border-radius: 12px; border: none; font-family: 'Poppins', sans-serif; font-size: 0.82rem; font-weight: 700; cursor: pointer; transition: all 0.3s ease; }
+        .wof-act-btn:disabled { opacity: 0.35; cursor: not-allowed; }
+        .wof-act-btn:hover:not(:disabled) { transform: translateY(-2px); }
+        .wof-spin-btn { background: linear-gradient(135deg,#e84393,#fd79a8); color: white; }
+        .wof-vowel-btn { background: linear-gradient(135deg,#e84393,#c44569); color: white; }
+        .wof-solve-btn { background: linear-gradient(135deg,#00b894,#55efc4); color: #1a1a2e; }
+        .wof-skip-btn { background: rgba(255,255,255,0.1); color: white; border: 1px solid rgba(255,255,255,0.15); }
+        /* Keyboard */
+        .wof-keyboard { display: flex; flex-wrap: wrap; gap: 5px; justify-content: center; max-width: 620px; margin: 0 auto; }
+        .wof-key {
+            width: 40px; height: 38px; border-radius: 8px; border: 2px solid rgba(255,255,255,0.15);
+            background: rgba(255,255,255,0.06); color: white; font-family: 'Poppins', sans-serif;
+            font-size: 0.88rem; font-weight: 700; cursor: pointer; transition: all 0.2s ease;
+            display: flex; align-items: center; justify-content: center;
+        }
+        .wof-key:hover:not(:disabled):not(.used) { background: rgba(255,255,255,0.15); transform: translateY(-2px); }
+        .wof-key.vowel { border-color: #e84393; color: #e84393; }
+        .wof-key.correct { background: rgba(0,184,148,0.2); border-color: #00b894; color: #00b894; pointer-events: none; }
+        .wof-key.wrong { background: rgba(214,48,49,0.15); border-color: #d63031; color: rgba(214,48,49,0.5); pointer-events: none; }
+        .wof-key:disabled { opacity: 0.25; cursor: not-allowed; pointer-events: none; }
+        .wof-key.glow { animation: vowelGlow 1s ease-in-out infinite; }
+        @keyframes vowelGlow { 0%,100% { box-shadow: 0 0 8px rgba(232,67,147,0.3); } 50% { box-shadow: 0 0 20px rgba(232,67,147,0.6); background: rgba(232,67,147,0.15); } }
+        /* Solve Modal */
+        .wof-solve-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.7); backdrop-filter: blur(6px); z-index: 600; align-items: center; justify-content: center; padding: 20px; }
+        .wof-solve-overlay.active { display: flex; }
+        .wof-solve-modal { background: linear-gradient(135deg,#1a1a2e,#16213e); border: 1px solid rgba(255,215,0,0.2); border-radius: 20px; padding: 30px; max-width: 500px; width: 100%; text-align: center; animation: slideUp 0.3s ease; }
+        .wof-solve-modal h3 { font-size: 1.2rem; margin-bottom: 16px; color: #ffd700; }
+        .wof-solve-input { width: 100%; padding: 14px 18px; border-radius: 12px; border: 2px solid rgba(255,215,0,0.2); background: rgba(255,255,255,0.05); color: white; font-family: 'Poppins', sans-serif; font-size: 1.1rem; font-weight: 600; text-align: center; outline: none; margin-bottom: 16px; text-transform: uppercase; }
+        .wof-solve-input:focus { border-color: #ffd700; }
+        .wof-solve-actions { display: flex; gap: 10px; justify-content: center; }
+        .wof-solve-actions .wof-act-btn { padding: 10px 24px; }
+        /* Round Won */
+        .wof-round-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.8); backdrop-filter: blur(10px); z-index: 700; align-items: center; justify-content: center; padding: 20px; }
+        .wof-round-overlay.active { display: flex; }
+        .wof-round-modal { background: linear-gradient(135deg,#1a1a2e,#16213e); border: 2px solid #ffd700; border-radius: 24px; padding: 36px; max-width: 550px; width: 100%; text-align: center; animation: slideUp 0.5s ease; }
+        .wof-round-modal h2 { font-size: 1.4rem; color: #ffd700; margin-bottom: 6px; }
+        .wof-answer-reveal { font-size: 1.1rem; font-weight: 700; color: white; background: rgba(255,215,0,0.1); border: 1px solid rgba(255,215,0,0.2); border-radius: 10px; padding: 10px 16px; margin: 14px 0; letter-spacing: 1px; }
+        .wof-winnings { font-size: 1.3rem; font-weight: 800; color: #00b894; margin-bottom: 16px; }
+        .wof-round-scores { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 20px; }
+        .wof-rs-card { padding: 10px; border-radius: 10px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); }
+        .wof-rs-name { font-size: 0.75rem; font-weight: 600; margin-bottom: 4px; }
+        .wof-rs-total { font-size: 1rem; font-weight: 800; color: #ffd700; }
+        .wof-round-actions { display: flex; gap: 10px; justify-content: center; }
+        /* End Game */
+        .wof-end-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); backdrop-filter: blur(12px); z-index: 800; align-items: center; justify-content: center; padding: 20px; overflow-y: auto; }
+        .wof-end-overlay.active { display: flex; }
+        .wof-end-modal { background: linear-gradient(135deg,#0f0c29,#1a1a3e); border: 2px solid #ffd700; border-radius: 24px; padding: 36px; max-width: 600px; width: 100%; text-align: center; animation: slideUp 0.5s ease; }
+        .wof-end-modal h2 { font-size: 1.6rem; color: #ffd700; margin-bottom: 20px; }
+        .wof-final-team { padding: 16px; border-radius: 14px; margin-bottom: 12px; border: 1px solid rgba(255,255,255,0.08); background: rgba(255,255,255,0.04); text-align: left; }
+        .wof-ft-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
+        .wof-ft-name { font-size: 1rem; font-weight: 700; display: flex; align-items: center; gap: 8px; }
+        .wof-ft-amount { font-size: 1.1rem; font-weight: 800; color: #ffd700; }
+        .wof-ft-members { font-size: 0.78rem; color: rgba(255,255,255,0.5); line-height: 1.6; }
+        .wof-end-actions { display: flex; gap: 10px; justify-content: center; margin-top: 20px; }
+
+        /* Toast & Confetti */
+        .toast { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%) translateY(80px); padding: 12px 24px; border-radius: 12px; background: rgba(255,255,255,0.1); backdrop-filter: blur(15px); border: 1px solid rgba(255,255,255,0.15); color: white; font-family: 'Poppins', sans-serif; font-size: 0.82rem; font-weight: 500; z-index: 3000; opacity: 0; transition: all 0.4s ease; pointer-events: none; }
+        .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+        #confetti-canvas { position: fixed; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 9999; }
+
+        /* Responsive */
+        @media (max-width: 900px) {
+            .wof-main { grid-template-columns: 1fr; }
+            .wof-teams-col { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+        }
+        @media (max-width: 768px) {
+            .header h1 { font-size: 2.2rem; }
+            .games-grid { grid-template-columns: 1fr; }
+            .sidebar { width: 100%; max-width: 100vw; right: -100%; }
+            .wof-teams-col { grid-template-columns: 1fr; }
+            .wof-tile { width: 30px; height: 36px; font-size: 0.9rem; }
+            .wof-key { width: 34px; height: 34px; font-size: 0.78rem; }
+            .wof-wheel-wrap { width: 300px; height: 300px; }
+            #wofWheelCanvas { width: 300px; height: 300px; }
+            .wof-wheel-center { width: 52px; height: 52px; font-size: 1.45rem; }
+        }
+
+        /* ==================== ANTAKSHARI ==================== */
+        #akGame { display: none; position: relative; z-index: 1; min-height: 100vh; padding: 16px; }
+        #akGame.active { display: block; }
+        .ak-layout { max-width: 760px; margin: 0 auto; }
+        .ak-top-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+        .ak-title { font-size: 1.4rem; font-weight: 900; background: linear-gradient(90deg,#4facfe,#f093fb,#feca57,#4facfe); background-size: 300% 100%; -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; animation: akShimmer 3s linear infinite; }
+        @keyframes akShimmer { 0%{background-position:0% 50%} 100%{background-position:300% 50%} }
+        .ak-btn { padding: 8px 16px; border-radius: 10px; border: none; font-family: 'Poppins', sans-serif; font-size: 0.8rem; font-weight: 600; cursor: pointer; transition: all 0.2s ease; }
+        .ak-btn:hover { transform: translateY(-1px); } .ak-btn:active { transform: scale(0.96); } .ak-btn:disabled { opacity: 0.35; cursor: not-allowed; transform: none; }
+        .ak-btn-back { background: rgba(255,255,255,0.08); color: rgba(255,255,255,0.7); border: 1px solid rgba(255,255,255,0.1); }
+        .ak-btn-end { background: rgba(255,107,107,0.15); color: #ff6b6b; border: 1px solid rgba(255,107,107,0.2); }
+        .ak-round-badge { padding: 5px 14px; border-radius: 20px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.08); color: rgba(255,255,255,0.5); font-size: 0.75rem; font-weight: 600; }
+        .ak-scoreboard { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 16px; }
+        .ak-team-card { flex: 1; min-width: 120px; padding: 12px 14px; border-radius: 14px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.06); border-top-width: 3px; transition: all 0.4s ease; }
+        .ak-team-card.active-ak-team { transform: translateY(-4px) scale(1.04); }
+        .ak-team-name { font-size: 0.78rem; font-weight: 700; margin-bottom: 6px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .ak-team-members { font-size: 0.65rem; color: rgba(255,255,255,0.6); margin-bottom: 6px; line-height: 1.3; word-break: break-word; }
+        .ak-team-score { font-size: 1.3rem; font-weight: 800; color: #ffd700; line-height: 1; }
+        .ak-team-streak { font-size: 0.7rem; color: rgba(255,255,255,0.4); margin-top: 3px; }
+        .ak-turn-indicator { text-align: center; padding: 10px 0 4px; margin-bottom: 12px; }
+        .ak-turn-text { font-size: 1.1rem; font-weight: 800; transition: color 0.4s ease; }
+        .ak-turn-sub { color: rgba(255,255,255,0.35); font-size: 0.75rem; margin-top: 3px; }
+        .ak-letter-section { display: flex; flex-direction: column; align-items: center; margin-bottom: 20px; }
+        .ak-letter-wrap { position: relative; width: 120px; height: 120px; display: flex; align-items: center; justify-content: center; margin-bottom: 14px; }
+        .ak-letter-circle { width: 90px; height: 90px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 2.8rem; font-weight: 900; color: white; position: relative; z-index: 2; animation: akPopIn 0.5s cubic-bezier(0.175,0.885,0.32,1.275); box-shadow: 0 6px 30px rgba(0,0,0,0.3); }
+        @keyframes akPopIn { 0%{transform:scale(0) rotate(-10deg);opacity:0} 70%{transform:scale(1.12) rotate(3deg)} 100%{transform:scale(1) rotate(0);opacity:1} }
+        .ak-pulse-ring { position: absolute; width: 115px; height: 115px; border-radius: 50%; animation: akPulseRing 1.8s ease-out infinite; }
+        @keyframes akPulseRing { 0%{transform:scale(0.85);opacity:0.7} 100%{transform:scale(1.5);opacity:0} }
+        .ak-letter-placeholder { color: rgba(255,255,255,0.2); font-size: 0.8rem; text-align: center; padding: 20px; line-height: 1.5; }
+        .ak-controls { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; margin-bottom: 16px; }
+        .ak-btn-letter { background: linear-gradient(135deg,#4facfe,#00f2fe); color: white; padding: 11px 22px; border-radius: 14px; font-size: 0.9rem; }
+        .ak-btn-hint { background: linear-gradient(135deg,#fdcb6e,#e17055); color: white; padding: 11px 22px; border-radius: 14px; font-size: 0.9rem; }
+        .ak-btn-skip { background: rgba(255,255,255,0.08); color: rgba(255,255,255,0.6); border: 1px solid rgba(255,255,255,0.1); padding: 11px 22px; border-radius: 14px; font-size: 0.9rem; }
+        .ak-btn-rules { background: rgba(255,255,255,0.06); color: rgba(255,255,255,0.5); border: 1px solid rgba(255,255,255,0.08); padding: 8px 14px; border-radius: 10px; font-size: 0.75rem; }
+        .ak-input-section { display: flex; gap: 8px; margin-bottom: 14px; animation: akSlideIn 0.3s ease; }
+        @keyframes akSlideIn { from{opacity:0;transform:translateY(10px)} to{opacity:1;transform:translateY(0)} }
+        .ak-song-input { flex: 1; padding: 12px 16px; border-radius: 12px; border: 2px solid rgba(255,255,255,0.1); background: rgba(255,255,255,0.05); color: #fff; font-family: 'Poppins', sans-serif; font-size: 0.92rem; outline: none; transition: all 0.3s ease; }
+        .ak-song-input:focus { border-color: rgba(79,172,254,0.5); background: rgba(255,255,255,0.08); }
+        .ak-btn-submit { background: linear-gradient(135deg,#4facfe,#00f2fe); color: white; padding: 12px 20px; border-radius: 12px; font-size: 0.9rem; white-space: nowrap; }
+        .ak-message { padding: 10px 16px; border-radius: 10px; font-size: 0.85rem; font-weight: 500; margin-bottom: 14px; text-align: center; animation: akSlideIn 0.3s ease; min-height: 42px; display: flex; align-items: center; justify-content: center; }
+        .ak-message.success { background: rgba(0,184,148,0.15); border: 1px solid rgba(0,184,148,0.3); color: #55efc4; }
+        .ak-message.error { background: rgba(255,107,107,0.15); border: 1px solid rgba(255,107,107,0.3); color: #ff6b6b; }
+        .ak-message.info { background: rgba(79,172,254,0.15); border: 1px solid rgba(79,172,254,0.3); color: #74b9ff; }
+        .ak-message.hint-msg { background: rgba(253,203,110,0.15); border: 1px solid rgba(253,203,110,0.3); color: #fdcb6e; }
+        .ak-message.idle { background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.06); color: rgba(255,255,255,0.35); }
+        .ak-judge-panel { background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.1); border-radius: 16px; padding: 20px; margin-bottom: 14px; animation: akSlideIn 0.4s ease; }
+        .ak-judge-label { font-size: 0.78rem; color: rgba(255,255,255,0.4); margin-bottom: 8px; text-transform: uppercase; letter-spacing: 1px; }
+        .ak-judge-song { font-size: 1rem; font-weight: 700; border-left: 3px solid; border-radius: 0 10px 10px 0; padding: 10px 14px; margin-bottom: 10px; font-style: italic; }
+        .ak-judge-question { font-size: 0.82rem; color: rgba(255,255,255,0.5); text-align: center; margin-bottom: 14px; }
+        .ak-judge-btns { display: flex; gap: 10px; }
+        .ak-judge-correct { flex: 1; padding: 13px; border-radius: 12px; border: none; background: linear-gradient(135deg,#00b894,#55efc4); color: #1a1a2e; font-family: 'Poppins', sans-serif; font-size: 1rem; font-weight: 700; cursor: pointer; transition: all 0.2s ease; }
+        .ak-judge-correct:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(0,184,148,0.4); }
+        .ak-judge-wrong { flex: 1; padding: 13px; border-radius: 12px; border: none; background: linear-gradient(135deg,#d63031,#ff7675); color: white; font-family: 'Poppins', sans-serif; font-size: 1rem; font-weight: 700; cursor: pointer; transition: all 0.2s ease; }
+        .ak-judge-wrong:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(214,48,49,0.4); }
+        .ak-history { max-height: 220px; overflow-y: auto; display: flex; flex-direction: column; gap: 6px; padding-right: 4px; }
+        .ak-history::-webkit-scrollbar { width: 3px; } .ak-history::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 3px; }
+        .ak-history-item { display: flex; align-items: center; gap: 10px; padding: 8px 12px; border-radius: 10px; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.05); animation: akSlideIn 0.3s ease; font-size: 0.8rem; }
+        .ak-history-letter { width: 26px; height: 26px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: 800; flex-shrink: 0; }
+        .ak-history-team { font-weight: 700; min-width: 90px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .ak-history-song { flex: 1; color: rgba(255,255,255,0.55); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .ak-history-status { font-size: 1rem; flex-shrink: 0; }
+        .ak-history-empty { color: rgba(255,255,255,0.2); font-size: 0.8rem; text-align: center; padding: 14px; }
+        .ak-rules-panel { background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.06); border-radius: 14px; padding: 16px 20px; margin-bottom: 14px; animation: akSlideIn 0.3s ease; }
+        .ak-rules-panel h4 { color: rgba(255,255,255,0.6); font-size: 0.75rem; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 10px; }
+        .ak-rules-panel li { color: rgba(255,255,255,0.45); font-size: 0.8rem; padding: 4px 0; list-style: none; }
+        .ak-rules-panel li::before { content: '🎵 '; }
+        .ak-hint-display { background: rgba(253,203,110,0.08); border: 1px solid rgba(253,203,110,0.2); border-radius: 10px; padding: 10px 14px; margin-bottom: 10px; font-size: 0.82rem; color: #fdcb6e; animation: akSlideIn 0.3s ease; }
+        .ak-end-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); backdrop-filter: blur(12px); z-index: 800; align-items: center; justify-content: center; padding: 20px; overflow-y: auto; }
+        .ak-end-overlay.active { display: flex; }
+        .ak-end-modal { background: linear-gradient(135deg,#0f0c29,#1a1a3e); border: 2px solid #ffd700; border-radius: 24px; padding: 36px; max-width: 550px; width: 100%; text-align: center; animation: akSlideIn 0.5s ease; }
+        .ak-end-modal h2 { font-size: 1.6rem; color: #ffd700; margin-bottom: 20px; }
+        .ak-final-team { padding: 14px 18px; border-radius: 14px; margin-bottom: 10px; border: 1px solid rgba(255,255,255,0.08); background: rgba(255,255,255,0.04); display: flex; align-items: center; justify-content: space-between; text-align: left; }
+        .ak-ft-left { display: flex; align-items: center; gap: 10px; }
+        .ak-ft-name { font-size: 0.95rem; font-weight: 700; }
+        .ak-ft-members { font-size: 0.72rem; color: rgba(255,255,255,0.4); margin-top: 2px; }
+        .ak-ft-score { font-size: 1.1rem; font-weight: 800; color: #ffd700; }
+        .ak-end-actions { display: flex; gap: 10px; justify-content: center; margin-top: 20px; flex-wrap: wrap; }
+        .ak-confetti-emoji { position: fixed; font-size: 1.5rem; pointer-events: none; z-index: 9998; animation: akConfettiFall linear forwards; }
+        @keyframes akConfettiFall { 0%{transform:translateY(-20px) rotate(0deg);opacity:1} 100%{transform:translateY(100vh) rotate(720deg);opacity:0} }
+
+        /* ==================== GUESS THE SONG / MOVIE ==================== */
+        #emojiGame { display: none; position: relative; z-index: 1; min-height: 100vh; padding: 16px; }
+        #emojiGame.active { display: block; }
+        .emoji-layout { max-width: 720px; margin: 0 auto; }
+        .emoji-top-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; }
+        .emoji-title {
+            font-size: 1.4rem;
+            font-weight: 900;
+            background: linear-gradient(90deg,#ffd200,#fbc2eb,#a18cd1,#ffd200);
+            background-size: 220% 100%;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            animation: emojiTitleFlow 3s linear infinite;
+        }
+        @keyframes emojiTitleFlow { 0%{background-position:0% 50%} 100%{background-position:220% 50%} }
+        .emoji-back-btn { padding: 8px 14px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.12); background: rgba(255,255,255,0.06); color: rgba(255,255,255,0.8); font-family: 'Poppins', sans-serif; cursor: pointer; }
+
+        .emoji-screen-card {
+            background: rgba(255,255,255,0.06);
+            border: 1px solid rgba(255,255,255,0.12);
+            border-radius: 20px;
+            backdrop-filter: blur(14px);
+            padding: 20px;
+            box-shadow: 0 18px 45px rgba(0,0,0,0.25);
+        }
+        .emoji-setup-sub { color: rgba(255,255,255,0.55); font-size: 0.84rem; margin-top: 6px; }
+        .emoji-team-count { margin-top: 14px; display: flex; gap: 8px; flex-wrap: wrap; }
+        .emoji-count-pill { padding: 5px 12px; border-radius: 999px; border: 1px solid rgba(255,255,255,0.16); background: rgba(255,255,255,0.04); color: rgba(255,255,255,0.6); font-size: 0.72rem; }
+        .emoji-count-pill.active { color: #ffd200; border-color: rgba(255,210,0,0.5); background: rgba(255,210,0,0.12); }
+
+        .emoji-team-list { margin-top: 14px; display: flex; flex-direction: column; gap: 8px; }
+        .emoji-team-row { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 12px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); }
+        .emoji-team-dot { width: 12px; height: 12px; border-radius: 50%; flex-shrink: 0; }
+        .emoji-team-name-input { flex: 0 0 170px; max-width: 170px; border: 1px solid rgba(255,255,255,0.14); background: rgba(255,255,255,0.04); color: #fff; border-radius: 10px; padding: 7px 10px; font-size: 0.82rem; }
+        .emoji-team-name-input[readonly] { opacity: 0.85; }
+        .emoji-team-members { color: rgba(255,255,255,0.55); font-size: 0.76rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+        .emoji-mode-tabs { margin-top: 14px; display: flex; gap: 8px; flex-wrap: wrap; }
+        .emoji-mode-tab { padding: 9px 14px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.12); background: rgba(255,255,255,0.04); color: rgba(255,255,255,0.7); font-family: 'Poppins', sans-serif; font-size: 0.8rem; font-weight: 600; cursor: pointer; transition: all 0.25s ease; }
+        .emoji-mode-tab.active { border-color: rgba(255,210,0,0.55); color: #ffd200; background: rgba(255,210,0,0.14); transform: translateY(-1px); }
+        .emoji-start-btn { margin-top: 16px; width: 100%; padding: 13px 16px; border: none; border-radius: 14px; background: linear-gradient(135deg,#ffd200,#f5a623); color: #1a1a2e; font-family: 'Poppins', sans-serif; font-size: 0.95rem; font-weight: 800; cursor: pointer; transition: transform 0.2s ease; }
+        .emoji-start-btn:hover { transform: translateY(-2px) scale(1.01); }
+
+        .emoji-turn-banner { margin-bottom: 12px; border-radius: 14px; padding: 12px 14px; border: 1px solid; font-weight: 700; font-size: 0.95rem; text-align: center; transition: all 0.3s ease; }
+        .emoji-scoreboard { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 10px; }
+        .emoji-score-chip { flex: 1; min-width: 120px; border-radius: 12px; padding: 8px 10px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); }
+        .emoji-score-name { font-size: 0.75rem; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .emoji-score-members { color: rgba(255,255,255,0.5); font-size: 0.64rem; margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .emoji-score-value { margin-top: 4px; color: #ffd200; font-size: 1.02rem; font-weight: 800; }
+
+        .emoji-round-label { color: rgba(255,255,255,0.5); font-size: 0.78rem; text-transform: uppercase; letter-spacing: 1.7px; margin-bottom: 8px; }
+        .emoji-main-card { background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); border-radius: 20px; padding: 16px; backdrop-filter: blur(14px); }
+        .emoji-meta-row { display: flex; justify-content: space-between; gap: 8px; margin-bottom: 10px; flex-wrap: wrap; }
+        .emoji-badge { font-size: 0.7rem; padding: 5px 10px; border-radius: 999px; border: 1px solid rgba(255,255,255,0.15); color: rgba(255,255,255,0.78); background: rgba(255,255,255,0.06); }
+        .emoji-display { font-size: 3rem; text-align: center; letter-spacing: 6px; padding: 16px 8px; border-radius: 14px; background: rgba(15,12,41,0.45); border: 1px dashed rgba(255,255,255,0.12); margin-bottom: 12px; animation: emojiPuzzleIn 0.45s ease; }
+        @keyframes emojiPuzzleIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        .emoji-input-row { display: flex; gap: 8px; margin-bottom: 10px; }
+        .emoji-input-row input { flex: 1; border-radius: 12px; border: 2px solid rgba(255,255,255,0.12); background: rgba(255,255,255,0.05); color: #fff; padding: 11px 12px; font-family: 'Poppins', sans-serif; font-size: 0.9rem; outline: none; }
+        .emoji-input-row input:focus { border-color: rgba(161,140,209,0.65); background: rgba(255,255,255,0.08); }
+        .emoji-guess-btn { border: none; border-radius: 12px; background: linear-gradient(135deg,#a18cd1,#fbc2eb); color: #1a1a2e; font-family: 'Poppins', sans-serif; font-size: 0.88rem; font-weight: 800; padding: 0 16px; cursor: pointer; transition: transform 0.18s ease; }
+        .emoji-guess-btn:hover { transform: scale(1.05); }
+
+        .emoji-action-row { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 10px; }
+        .emoji-action-btn { padding: 9px 12px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.14); background: rgba(255,255,255,0.05); color: rgba(255,255,255,0.82); font-family: 'Poppins', sans-serif; font-size: 0.78rem; cursor: pointer; }
+        .emoji-action-btn:disabled { opacity: 0.45; cursor: not-allowed; }
+        .emoji-action-btn.hint { border-color: rgba(116,185,255,0.5); background: rgba(116,185,255,0.12); color: #74b9ff; }
+        .emoji-action-btn.skip { border-color: rgba(250,177,160,0.5); background: rgba(250,177,160,0.14); color: #fab1a0; }
+        .emoji-action-btn.end { border-color: rgba(255,107,107,0.45); background: rgba(255,107,107,0.14); color: #ff6b6b; margin-left: auto; }
+
+        .emoji-hint { display: none; margin-bottom: 10px; border-radius: 10px; border: 1px solid rgba(116,185,255,0.36); background: rgba(116,185,255,0.12); color: #74b9ff; padding: 9px 12px; font-size: 0.8rem; }
+        .emoji-feedback { border-radius: 10px; padding: 10px 12px; font-size: 0.83rem; min-height: 40px; display: flex; align-items: center; }
+        .emoji-feedback.neutral { border: 1px solid rgba(255,255,255,0.1); background: rgba(255,255,255,0.04); color: rgba(255,255,255,0.52); }
+        .emoji-feedback.correct { border: 1px solid rgba(85,239,196,0.4); background: rgba(85,239,196,0.14); color: #55efc4; }
+        .emoji-feedback.wrong { border: 1px solid rgba(255,107,107,0.45); background: rgba(255,107,107,0.15); color: #ff6b6b; }
+        .emoji-feedback.hint { border: 1px solid rgba(116,185,255,0.4); background: rgba(116,185,255,0.14); color: #74b9ff; }
+        .emoji-feedback.skip { border: 1px solid rgba(250,177,160,0.5); background: rgba(250,177,160,0.15); color: #fab1a0; }
+
+        .emoji-transition-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); backdrop-filter: blur(6px); align-items: center; justify-content: center; z-index: 850; }
+        .emoji-transition-overlay.active { display: flex; }
+        .emoji-transition-card { border-radius: 16px; padding: 24px; min-width: 280px; text-align: center; font-size: 1.18rem; font-weight: 800; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); animation: emojiTransitionIn 0.35s ease; }
+        @keyframes emojiTransitionIn { from { opacity: 0; transform: translateY(14px) scale(0.96); } to { opacity: 1; transform: translateY(0) scale(1); } }
+
+        .emoji-end-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); backdrop-filter: blur(10px); z-index: 900; align-items: center; justify-content: center; padding: 16px; }
+        .emoji-end-overlay.active { display: flex; }
+        .emoji-end-modal { width: min(760px, 100%); max-height: 92vh; overflow-y: auto; border-radius: 20px; padding: 22px; background: linear-gradient(135deg,#0f0c29,#1d1b45); border: 2px solid rgba(255,210,0,0.6); }
+        .emoji-end-title { color: #ffd200; font-size: 1.5rem; font-weight: 900; margin-bottom: 12px; text-align: center; }
+        .emoji-rank-list { display: flex; flex-direction: column; gap: 8px; margin-bottom: 12px; }
+        .emoji-rank-item { border-radius: 12px; padding: 10px 12px; border: 1px solid rgba(255,255,255,0.1); background: rgba(255,255,255,0.05); display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+        .emoji-rank-left { display: flex; align-items: center; gap: 8px; min-width: 0; }
+        .emoji-rank-name { font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .emoji-rank-members { color: rgba(255,255,255,0.5); font-size: 0.7rem; margin-top: 2px; }
+        .emoji-rank-score { color: #ffd200; font-size: 1.05rem; font-weight: 800; }
+
+        .emoji-results-title { color: rgba(255,255,255,0.7); text-transform: uppercase; font-size: 0.72rem; letter-spacing: 1.8px; margin: 14px 0 8px; }
+        .emoji-results-log { max-height: 240px; overflow-y: auto; display: flex; flex-direction: column; gap: 6px; }
+        .emoji-results-log::-webkit-scrollbar { width: 4px; }
+        .emoji-results-log::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.18); border-radius: 6px; }
+        .emoji-result-row { border-radius: 10px; padding: 8px 10px; border: 1px solid rgba(255,255,255,0.08); background: rgba(255,255,255,0.04); display: flex; align-items: center; gap: 10px; font-size: 0.8rem; }
+        .emoji-result-emoji { font-size: 1.2rem; min-width: 40px; text-align: center; }
+        .emoji-result-main { flex: 1; min-width: 0; }
+        .emoji-result-answer { color: rgba(255,255,255,0.86); font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .emoji-result-meta { color: rgba(255,255,255,0.48); font-size: 0.7rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .emoji-result-status { font-size: 1rem; min-width: 28px; text-align: center; }
+
+        .emoji-end-actions { margin-top: 14px; display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
+        .emoji-end-btn { padding: 10px 14px; border: none; border-radius: 12px; font-family: 'Poppins', sans-serif; font-size: 0.84rem; font-weight: 700; cursor: pointer; }
+        .emoji-end-btn.play { background: linear-gradient(135deg,#ffd200,#f5a623); color: #1a1a2e; }
+        .emoji-end-btn.rematch { background: linear-gradient(135deg,#a18cd1,#fbc2eb); color: #1a1a2e; }
+        .emoji-end-btn.home { background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.15); color: #fff; }
+
+        @media (max-width: 720px) {
+            .emoji-team-name-input { flex-basis: 130px; max-width: 130px; }
+            .emoji-display { font-size: 2.4rem; letter-spacing: 4px; }
+            .emoji-score-chip { min-width: 100px; }
+        }
+        @media (max-width: 480px) {
+            .ak-scoreboard { display: grid; grid-template-columns: 1fr 1fr; }
+            .ak-letter-circle { width: 72px; height: 72px; font-size: 2.2rem; }
+            .ak-pulse-ring { width: 90px; height: 90px; }
+            .ak-letter-wrap { width: 90px; height: 90px; }
+            .ak-input-section { flex-direction: column; }
+            .ak-judge-btns { flex-direction: column; }
+            .ak-turn-text { font-size: 0.95rem; }
+            .emoji-input-row { flex-direction: column; }
+            .emoji-guess-btn { width: 100%; height: 44px; }
+            .emoji-team-row { align-items: flex-start; flex-direction: column; gap: 6px; }
+            .emoji-team-name-input { width: 100%; max-width: 100%; }
+            .emoji-team-members { white-space: normal; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="bg-particles" id="particles"></div>
+<canvas id="confetti-canvas"></canvas>
+
+<button class="sidebar-toggle" onclick="toggleSidebar()">👥<span class="badge-count" id="playerBadge">0</span></button>
+<div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
+<aside class="sidebar" id="sidebar">
+    <div class="sidebar-header"><h2>👥 Players & Teams</h2><button class="sidebar-close" onclick="toggleSidebar()">✕</button></div>
+    <div class="sidebar-body">
+        <div class="sidebar-section">
+            <div class="sidebar-section-title">Add Player</div>
+            <div class="add-player-row"><input type="text" class="add-player-input" id="playerNameInput" placeholder="Enter player name..." maxlength="30" onkeydown="if(event.key==='Enter') addPlayer()"><button class="add-player-btn" onclick="addPlayer()">+</button></div>
+            <div class="sidebar-section-title" style="margin-top:10px">Bulk Add (comma separated)</div>
+            <div class="bulk-add-row"><input type="text" class="bulk-add-input" id="bulkInput" placeholder="e.g. Alice, Bob, Charlie..." onkeydown="if(event.key==='Enter') bulkAddPlayers()"><button class="bulk-add-btn" onclick="bulkAddPlayers()">⚡</button></div>
+            <div class="input-hint">Paste names separated by commas, then click ⚡</div>
+        </div>
+        <div class="sidebar-section">
+            <div class="player-list-header"><span class="sidebar-section-title" style="margin:0">Player Roster</span><div style="display:flex;align-items:center;gap:10px"><span class="player-count" id="playerCount">0 players</span><button class="clear-all-btn" onclick="clearAllPlayers()">Clear All</button></div></div>
+            <div class="player-list" id="playerList"><div class="empty-state" id="emptyState"><span class="empty-icon">🎮</span>Add players to get started!</div></div>
+        </div>
+        <div class="sidebar-section team-section">
+            <div class="sidebar-section-title">Team Distribution</div>
+            <div class="team-controls"><button class="team-btn" onclick="selectTeamCount(2)" id="teamBtn2">2 Teams</button><button class="team-btn" onclick="selectTeamCount(3)" id="teamBtn3">3 Teams</button><button class="team-btn" onclick="selectTeamCount(4)" id="teamBtn4">4 Teams</button><button class="team-btn" onclick="selectTeamCount(5)" id="teamBtn5">5 Teams</button></div>
+            <div class="custom-team-row"><span class="custom-team-label">Or custom:</span><input type="number" class="custom-team-input" id="customTeamInput" min="2" max="50" placeholder="N" onchange="selectTeamCount(parseInt(this.value))"><span class="custom-team-label">teams</span></div>
+            <button class="shuffle-btn" id="shuffleBtn" onclick="shuffleAndDistribute()" disabled>🔀 Shuffle & Create Teams</button>
+            <div class="teams-display" id="teamsDisplay"></div>
+        </div>
+    </div>
+</aside>
+<div class="toast" id="toast"></div>
+
+<!-- ==================== MAIN PAGE ==================== -->
+<div id="mainPage">
+    <header class="header"><div class="header-badge">🎉 Every Friday</div><h1>Fun Friday</h1><p>Take a break, play games, and bond with your team!</p></header>
+    <div class="stats-bar"><div class="stat-item"><div class="stat-number">5</div><div class="stat-label">Games</div></div><div class="stat-item"><div class="stat-number" id="statPlayers">2-200</div><div class="stat-label">Players</div></div><div class="stat-item"><div class="stat-number">∞</div><div class="stat-label">Fun</div></div></div>
+    <main class="games-container">
+        <div class="section-title">Choose a game to play</div>
+        <div class="games-grid">
+            <div class="game-card" style="--card-color1:#f093fb;--card-color2:#f5576c;--card-glow:rgba(245,87,108,0.3)" onclick="openModal('wheel')">
+                <div class="card-thumbnail thumb-wheel" style="background:linear-gradient(135deg,#f093fb,#f5576c)"><div class="pattern-overlay"></div><div class="sparkle"></div><div class="sparkle"></div><div class="sparkle"></div><div class="sparkle"></div><span class="players-badge">👥 3+ (3 Teams)</span>
+                    <div class="casino-wheel-container"><div class="wheel-pointer"></div><div class="wheel-glow"></div><div class="casino-wheel"><div class="wheel-face"></div><div class="wheel-lines"></div><div class="wheel-line-45"></div><div class="wheel-line-135"></div><span class="wheel-icon">🎁</span><span class="wheel-icon">⭐</span><span class="wheel-icon">🏆</span><span class="wheel-icon">💎</span><span class="wheel-icon">🎯</span><span class="wheel-icon">🔥</span><span class="wheel-icon">💰</span><span class="wheel-icon">🍀</span></div><div class="wheel-center"><div class="wheel-center-dot"></div></div></div></div>
+                <div class="card-content"><h3>Wheel of Fortune</h3><p>Spin the wheel, guess letters, and solve phrase puzzles to earn Rupees!</p><div class="card-footer"><div class="card-tags"><span class="tag">🎲 Luck</span><span class="tag">⏱ 30+ min</span><span class="tag">🔥 Popular</span></div><button class="play-btn" style="--card-color1:#f093fb;--card-color2:#f5576c" onclick="openModal('wheel')">▶</button></div></div>
+            </div>
+            <div class="game-card" style="--card-color1:#4facfe;--card-color2:#00f2fe;--card-glow:rgba(79,172,254,0.3)" onclick="openModal('antakshari')"><div class="card-thumbnail thumb-antakshari" style="background:linear-gradient(135deg,#4facfe,#00f2fe)"><div class="pattern-overlay"></div><div class="sound-wave"></div><div class="sound-wave"></div><div class="sound-wave"></div><span class="players-badge">👥 4-200</span><span class="emoji-icon">🎤</span></div><div class="card-content"><h3>Antakshari</h3><p>The classic singing battle!</p><div class="card-footer"><div class="card-tags"><span class="tag">🎵 Music</span><span class="tag">⏱ 30 min</span></div><button class="play-btn" style="--card-color1:#4facfe;--card-color2:#00f2fe" onclick="openModal('antakshari')">▶</button></div></div></div>
+            <div class="game-card" style="--card-color1:#a18cd1;--card-color2:#fbc2eb;--card-glow:rgba(161,140,209,0.3)" onclick="openModal('emoji')"><div class="card-thumbnail thumb-emoji" style="background:linear-gradient(135deg,#a18cd1,#fbc2eb)"><div class="pattern-overlay"></div><div class="shimmer"></div><span class="mini-emoji">🎵</span><span class="mini-emoji">🎬</span><span class="mini-emoji">❓</span><span class="players-badge">👥 2-200</span><span class="emoji-icon">🧩</span></div><div class="card-content"><h3>Guess the Song / Movie</h3><p>Decode emoji combinations!</p><div class="card-footer"><div class="card-tags"><span class="tag">😎 Emoji</span><span class="tag">⏱ 20 min</span></div><button class="play-btn" style="--card-color1:#a18cd1;--card-color2:#fbc2eb" onclick="openModal('emoji')">▶</button></div></div></div>
+            <div class="game-card" style="--card-color1:#43e97b;--card-color2:#38f9d7;--card-glow:rgba(67,233,123,0.3)" onclick="openModal('skribbl')"><div class="card-thumbnail thumb-skribbl" style="background:linear-gradient(135deg,#43e97b,#38f9d7)"><div class="pattern-overlay"></div><div class="paint-splash"></div><div class="paint-splash"></div><div class="paint-splash"></div><span class="players-badge">👥 3-200</span><span class="emoji-icon">🎨</span></div><div class="card-content"><h3>Skribbl</h3><p>Draw and guess words!</p><div class="card-footer"><div class="card-tags"><span class="tag">✏️ Drawing</span><span class="tag">⏱ 20 min</span></div><button class="play-btn" style="--card-color1:#43e97b;--card-color2:#38f9d7" onclick="openModal('skribbl')">▶</button></div></div></div>
+            <div class="game-card disabled" style="--card-color1:#fa709a;--card-color2:#fee140;--card-glow:rgba(250,112,154,0.3)" aria-disabled="true"><div class="card-thumbnail thumb-charades" style="background:linear-gradient(135deg,#fa709a,#fee140)"><div class="pattern-overlay"></div><span class="coming-soon-badge">Coming Soon</span><span class="float-emoji">🎬</span><span class="float-emoji">🍿</span><span class="float-emoji">⭐</span><span class="float-emoji">🎥</span><span class="players-badge">👥 4-200</span><span class="emoji-icon">🎭</span></div><div class="card-content"><h3>Dumb Charades</h3><p>Act out movie names without speaking. This mode is being prepared.</p><div class="card-footer"><div class="card-tags"><span class="tag">🎬 Movies</span><span class="tag">⏳ Coming Soon</span></div><button class="play-btn" style="--card-color1:#fa709a;--card-color2:#fee140" type="button" disabled>▶</button></div></div></div>
+        </div>
+    </main>
+</div>
+
+<!-- Modal -->
+<div class="modal-overlay" id="gameModal"><div class="modal-content"><div class="modal-header" id="modalHeader"><button class="modal-close" onclick="closeModal()">✕</button><span class="emoji-icon" id="modalEmoji"></span></div><div class="modal-body"><h2 id="modalTitle"></h2><p class="modal-description" id="modalDesc"></p><div class="modal-rules"><h4>📋 How to Play</h4><ul id="modalRules"></ul></div><button class="modal-start-btn" id="modalBtn" onclick="startGame()">🚀 Let's Play!</button></div></div></div>
+
+<!-- ==================== WOF GAME ==================== -->
+<div id="wofGame">
+    <div class="wof-layout">
+        <div class="wof-top-bar"><div class="wof-title">🎡 Wheel of Fortune: India Edition</div><div style="display:flex;gap:6px"><button class="wof-btn wof-btn-back" onclick="wofBackToMenu()">← Menu</button><button class="wof-btn wof-btn-end" onclick="wofEndGameEarly()">🏁 End</button></div></div>
+        <div class="wof-info-bar" id="wofInfoBar"></div>
+        <div class="wof-status" id="wofStatus">Welcome!</div>
+        <div class="wof-main">
+            <div>
+                <div class="wof-board" id="wofBoard"></div>
+                <div class="wof-wheel-section">
+                    <div class="wof-wheel-wrap"><div class="wof-pointer"></div><canvas id="wofWheelCanvas"></canvas><div class="wof-wheel-center">💰</div></div>
+                    <div class="wof-action-btns" id="wofActions"></div>
+                </div>
+                <div class="wof-keyboard" id="wofKeyboard"></div>
+            </div>
+            <div class="wof-teams-col" id="wofTeamsCol"></div>
+        </div>
+    </div>
+</div>
+<div class="wof-solve-overlay" id="wofSolveOverlay"><div class="wof-solve-modal"><h3>💡 Solve the Puzzle</h3><input type="text" class="wof-solve-input" id="wofSolveInput" placeholder="Type the full phrase..." onkeydown="if(event.key==='Enter') wofSubmitSolve()"><div class="wof-solve-actions"><button class="wof-act-btn wof-skip-btn" onclick="wofCloseSolve()">Cancel</button><button class="wof-act-btn wof-solve-btn" onclick="wofSubmitSolve()">✅ Submit</button></div></div></div>
+<div class="wof-round-overlay" id="wofRoundOverlay"><div class="wof-round-modal" id="wofRoundModal"></div></div>
+<div class="wof-end-overlay" id="wofEndOverlay"><div class="wof-end-modal" id="wofEndModal"></div></div>
+
+<!-- ==================== ANTAKSHARI GAME ==================== -->
+<div id="akGame">
+    <div class="ak-layout">
+        <div class="ak-top-bar">
+            <div class="ak-title">🎤 Antakshari</div>
+            <div style="display:flex;gap:6px;align-items:center">
+                <span class="ak-round-badge">Round <span id="akRound">1</span></span>
+                <button class="ak-btn ak-btn-back" onclick="akBackToMenu()">← Menu</button>
+                <button class="ak-btn ak-btn-end" onclick="akEndGame()">🏆 End</button>
+            </div>
+        </div>
+        <div class="ak-scoreboard" id="akScoreboard"></div>
+        <div class="ak-turn-indicator">
+            <div class="ak-turn-text" id="akTurnText">🎤 Loading...</div>
+            <div class="ak-turn-sub" id="akTurnSub"></div>
+        </div>
+        <div class="ak-letter-section">
+            <div class="ak-letter-wrap" id="akLetterWrap">
+                <div class="ak-letter-placeholder">Press "Give Me a Letter" to start!</div>
+            </div>
+        </div>
+        <div id="akHintDisplay" style="display:none" class="ak-hint-display"></div>
+        <div class="ak-message idle" id="akMessage">Waiting for a letter...</div>
+        <div class="ak-controls">
+            <button class="ak-btn ak-btn-letter" id="akLetterBtn" onclick="akGiveLetter()">🎲 Give Me a Letter</button>
+            <button class="ak-btn ak-btn-hint" id="akHintBtn" onclick="akUseHint()" disabled>💡 Hint (-5 pts)</button>
+            <button class="ak-btn ak-btn-skip" id="akSkipBtn" onclick="akSkip()" disabled>⏭️ Skip</button>
+            <button class="ak-btn ak-btn-rules" onclick="akToggleRules()">❓ Rules</button>
+        </div>
+        <div id="akRulesPanel" style="display:none" class="ak-rules-panel">
+            <h4>📋 How to Play</h4>
+            <ul>
+                <li>Each team gets a random letter</li>
+                <li>Sing a Bollywood song starting with that letter</li>
+                <li>Wrong first letter = auto-rejected, turn passes</li>
+                <li>Correct first letter → judge decides ✅ or ❌</li>
+                <li>✅ Correct: +10 pts (🔥 streak bonus at 3+)</li>
+                <li>❌ Wrong: 0 pts, streak resets</li>
+                <li>💡 Hint: -5 pts penalty</li>
+                <li>⏭️ Skip: 0 pts, streak resets</li>
+            </ul>
+        </div>
+        <div id="akInputSection" style="display:none" class="ak-input-section">
+            <input type="text" class="ak-song-input" id="akSongInput" placeholder="Type a Bollywood song starting with..." onkeydown="if(event.key==='Enter')akSubmitSong()">
+            <button class="ak-btn ak-btn-submit" onclick="akSubmitSong()">Submit 🎵</button>
+        </div>
+        <div id="akJudgePanel" style="display:none" class="ak-judge-panel"></div>
+        <div style="margin-top:16px">
+            <div style="color:rgba(255,255,255,0.3);font-size:0.7rem;text-transform:uppercase;letter-spacing:2px;margin-bottom:8px">History</div>
+            <div class="ak-history" id="akHistory"><div class="ak-history-empty">No rounds played yet</div></div>
+        </div>
+    </div>
+</div>
+<div class="ak-end-overlay" id="akEndOverlay"><div class="ak-end-modal" id="akEndModal"></div></div>
+
+<!-- ==================== GUESS THE SONG / MOVIE ==================== -->
+<div id="emojiGame">
+    <div class="emoji-layout">
+        <div class="emoji-top-bar">
+            <div class="emoji-title">🧩 Guess the Song / Movie</div>
+            <button class="emoji-back-btn" onclick="emojiBackToHome()">← Menu</button>
+        </div>
+
+        <div id="emojiSetupScreen" class="emoji-screen-card">
+            <h3 style="color:#fff;font-size:1.06rem">Game Setup</h3>
+            <p class="emoji-setup-sub">Teams and members are synced from sidebar distribution to stay consistent with Wheel of Fortune and Antakshari.</p>
+            <div class="emoji-team-count" id="emojiTeamCount"></div>
+            <div class="emoji-team-list" id="emojiTeamList"></div>
+
+            <div style="color:rgba(255,255,255,0.6);font-size:0.78rem;margin-top:14px">Game Mode</div>
+            <div class="emoji-mode-tabs">
+                <button class="emoji-mode-tab" id="emojiModeMovies" onclick="emojiSetMode('movies')">🎬 Movies Only</button>
+                <button class="emoji-mode-tab" id="emojiModeSongs" onclick="emojiSetMode('songs')">🎵 Songs Only</button>
+                <button class="emoji-mode-tab" id="emojiModeMixed" onclick="emojiSetMode('mixed')">🎲 Mixed</button>
+            </div>
+            <button class="emoji-start-btn" onclick="emojiBeginGame()">🎮 Start Game</button>
+        </div>
+
+        <div id="emojiPlayScreen" style="display:none">
+            <div class="emoji-turn-banner" id="emojiTurnBanner"></div>
+            <div class="emoji-scoreboard" id="emojiScoreboard"></div>
+            <div class="emoji-round-label" id="emojiRoundLabel"></div>
+
+            <div class="emoji-main-card">
+                <div class="emoji-meta-row">
+                    <span class="emoji-badge" id="emojiCategoryBadge">Category</span>
+                    <span class="emoji-badge" id="emojiWordHint">Word hint</span>
+                </div>
+                <div class="emoji-display" id="emojiPuzzleDisplay">🎬 🎵</div>
+
+                <div class="emoji-hint" id="emojiHintBox"></div>
+
+                <div class="emoji-input-row">
+                    <input id="emojiGuessInput" type="text" placeholder="Type your guess and press Enter" onkeydown="if(event.key==='Enter')emojiSubmitGuess()">
+                    <button class="emoji-guess-btn" id="emojiGuessBtn" onclick="emojiSubmitGuess()">Guess!</button>
+                </div>
+
+                <div class="emoji-action-row">
+                    <button class="emoji-action-btn hint" id="emojiHintBtn" onclick="emojiUseHint()">💡 Hint (-5)</button>
+                    <button class="emoji-action-btn skip" id="emojiSkipBtn" onclick="emojiSkip()">⏭️ Skip</button>
+                    <button class="emoji-action-btn end" onclick="emojiEndGameEarly()">🏁 End</button>
+                </div>
+
+                <div class="emoji-feedback neutral" id="emojiFeedback">Waiting for your guess...</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="emoji-transition-overlay" id="emojiTransitionOverlay">
+    <div class="emoji-transition-card" id="emojiTransitionCard"></div>
+</div>
+
+<div class="emoji-end-overlay" id="emojiEndOverlay">
+    <div class="emoji-end-modal" id="emojiEndModal"></div>
+</div>
+
+<script>
+// ==================== PUZZLE DATA ====================
+const WOF_PUZZLES=[
+{category:"Bollywood",phrase:"DILWALE DULHANIA LE JAYENGE"},{category:"Bollywood",phrase:"SHOLAY"},{category:"Bollywood",phrase:"THREE IDIOTS"},{category:"Bollywood",phrase:"KABHI KHUSHI KABHIE GHAM"},{category:"Bollywood",phrase:"DANGAL"},{category:"Bollywood",phrase:"BAJRANGI BHAIJAAN"},{category:"Bollywood",phrase:"ZINDAGI NA MILEGI DOBARA"},{category:"Bollywood",phrase:"QUEEN"},{category:"Bollywood",phrase:"ANDAZ APNA APNA"},{category:"Bollywood",phrase:"DIL CHAHTA HAI"},{category:"Bollywood",phrase:"LAGAAN"},{category:"Bollywood",phrase:"MUGHAL E AZAM"},
+{category:"Hollywood",phrase:"THE DARK KNIGHT"},{category:"Hollywood",phrase:"INCEPTION"},{category:"Hollywood",phrase:"TITANIC"},{category:"Hollywood",phrase:"AVENGERS ENDGAME"},{category:"Hollywood",phrase:"THE LION KING"},{category:"Hollywood",phrase:"JURASSIC PARK"},
+{category:"Indian Landmarks",phrase:"TAJ MAHAL AGRA"},{category:"Indian Landmarks",phrase:"GATEWAY OF INDIA MUMBAI"},{category:"Indian Landmarks",phrase:"RED FORT DELHI"},{category:"Indian Landmarks",phrase:"HAWA MAHAL JAIPUR"},{category:"Indian Landmarks",phrase:"GOLDEN TEMPLE AMRITSAR"},{category:"Indian Landmarks",phrase:"CHARMINAR HYDERABAD"},{category:"Indian Landmarks",phrase:"QUTUB MINAR DELHI"},
+{category:"Desi Food",phrase:"BUTTER CHICKEN"},{category:"Desi Food",phrase:"PANI PURI"},{category:"Desi Food",phrase:"MASALA DOSA"},{category:"Desi Food",phrase:"BIRYANI"},{category:"Desi Food",phrase:"CHOLE BHATURE"},{category:"Desi Food",phrase:"GULAB JAMUN"},{category:"Desi Food",phrase:"RAJMA CHAWAL"},
+{category:"Indian Festivals",phrase:"DIWALI FESTIVAL OF LIGHTS"},{category:"Indian Festivals",phrase:"HOLI FESTIVAL OF COLORS"},{category:"Indian Festivals",phrase:"NAVRATRI GARBA NIGHTS"},{category:"Indian Festivals",phrase:"GANESH CHATURTHI"},{category:"Indian Festivals",phrase:"DURGA PUJA"},{category:"Indian Festivals",phrase:"MAKAR SANKRANTI KITES"},
+{category:"Famous Personalities",phrase:"MAHATMA GANDHI"},{category:"Famous Personalities",phrase:"SACHIN TENDULKAR"},{category:"Famous Personalities",phrase:"APJ ABDUL KALAM"},{category:"Famous Personalities",phrase:"AMITABH BACHCHAN"},{category:"Famous Personalities",phrase:"LATA MANGESHKAR"},{category:"Famous Personalities",phrase:"VIRAT KOHLI"},
+{category:"Hindi Phrases",phrase:"ATITHI DEVO BHAVA"},{category:"Hindi Phrases",phrase:"SATYAMEV JAYATE"},{category:"Hindi Phrases",phrase:"VASUDHAIVA KUTUMBAKAM"},{category:"Hindi Phrases",phrase:"JAI HIND"},
+{category:"English Phrases",phrase:"UNITY IN DIVERSITY"},{category:"English Phrases",phrase:"INCREDIBLE INDIA"},{category:"English Phrases",phrase:"KNOWLEDGE IS POWER"},{category:"English Phrases",phrase:"THE SHOW MUST GO ON"}
+];
+const WOF_SEGMENTS=[
+{label:"₹1,000",value:1000,type:"cash",color:"#e74c3c"},{label:"₹1,500",value:1500,type:"cash",color:"#3498db"},{label:"₹2,000",value:2000,type:"cash",color:"#2ecc71"},{label:"₹2,500",value:2500,type:"cash",color:"#e67e22"},{label:"₹3,000",value:3000,type:"cash",color:"#9b59b6"},{label:"₹3,500",value:3500,type:"cash",color:"#1abc9c"},{label:"₹4,000",value:4000,type:"cash",color:"#f39c12"},{label:"₹5,000",value:5000,type:"cash",color:"#16a085"},
+{label:"BANKRUPT",value:0,type:"bankrupt",color:"#111"},{label:"₹6,000",value:6000,type:"cash",color:"#2980b9"},{label:"₹7,500",value:7500,type:"cash",color:"#8e44ad"},{label:"₹8,000",value:8000,type:"cash",color:"#c0392b"},
+{label:"FREE VOWEL",value:0,type:"freevowel",color:"#e84393"},{label:"₹10,000",value:10000,type:"cash",color:"#27ae60"},{label:"₹12,000",value:12000,type:"cash",color:"#d35400"},{label:"₹15,000",value:15000,type:"cash",color:"#2c3e50"},{label:"₹20,000",value:20000,type:"cash",color:"#e74c3c"},
+{label:"LOSE TURN",value:0,type:"loseturn",color:"#ecf0f1"},{label:"₹25,000",value:25000,type:"cash",color:"#2ecc71"},{label:"₹50,000",value:50000,type:"cash",color:"#f1c40f"}
+];
+const VOWELS='AEIOU';
+const WOF_TEAM_COLORS=[{hex:"#ff6b6b",name:"Dynamos"},{hex:"#00cec9",name:"Mavericks"},{hex:"#feca57",name:"Dragons"}];
+
+// ==================== SHARED STATE ====================
+let players=[],selectedTeamCount=2,currentGame=null,currentTeams=[];
+const avatarColors=['#ff6b6b','#feca57','#55efc4','#a29bfe','#fd79a8','#00cec9','#fdcb6e','#6c5ce7','#e17055','#74b9ff','#00b894','#e84393','#0984e3','#d63031','#636e72'];
+const teamColors=[{bg:'rgba(255,107,107,0.08)',border:'rgba(255,107,107,0.15)',header:'rgba(255,107,107,0.12)',dot:'#ff6b6b',name:'🔴 Team Red'},{bg:'rgba(79,172,254,0.08)',border:'rgba(79,172,254,0.15)',header:'rgba(79,172,254,0.12)',dot:'#4facfe',name:'🔵 Team Blue'},{bg:'rgba(85,239,196,0.08)',border:'rgba(85,239,196,0.15)',header:'rgba(85,239,196,0.12)',dot:'#55efc4',name:'🟢 Team Green'},{bg:'rgba(254,202,87,0.08)',border:'rgba(254,202,87,0.15)',header:'rgba(254,202,87,0.12)',dot:'#feca57',name:'🟡 Team Yellow'},{bg:'rgba(162,155,254,0.08)',border:'rgba(162,155,254,0.15)',header:'rgba(162,155,254,0.12)',dot:'#a29bfe',name:'🟣 Team Purple'},{bg:'rgba(253,121,168,0.08)',border:'rgba(253,121,168,0.15)',header:'rgba(253,121,168,0.12)',dot:'#fd79a8',name:'🩷 Team Pink'},{bg:'rgba(0,206,201,0.08)',border:'rgba(0,206,201,0.15)',header:'rgba(0,206,201,0.12)',dot:'#00cec9',name:'🩵 Team Cyan'},{bg:'rgba(225,112,85,0.08)',border:'rgba(225,112,85,0.15)',header:'rgba(225,112,85,0.12)',dot:'#e17055',name:'🟠 Team Orange'},{bg:'rgba(116,185,255,0.08)',border:'rgba(116,185,255,0.15)',header:'rgba(116,185,255,0.12)',dot:'#74b9ff',name:'💠 Team Sky'},{bg:'rgba(232,67,147,0.08)',border:'rgba(232,67,147,0.15)',header:'rgba(232,67,147,0.12)',dot:'#e84393',name:'🌺 Team Rose'}];
+
+// WOF Game State
+let wof={phase:'setup',teamIdx:0,round:1,puzzle:null,revealed:new Set(),used:new Set(),spinVal:0,freeVowel:false,usedIdx:new Set(),wheelAngle:0,solveOpen:false,teams:[{name:WOF_TEAM_COLORS[0].name,members:[],captain:null,bank:0,total:0},{name:WOF_TEAM_COLORS[1].name,members:[],captain:null,bank:0,total:0},{name:WOF_TEAM_COLORS[2].name,members:[],captain:null,bank:0,total:0}]};
+
+// ==================== HELPERS ====================
+function $(id){return document.getElementById(id)}
+function esc(s){var d=document.createElement('div');d.textContent=s;return d.innerHTML}
+function showToast(m){var t=$('toast');t.textContent=m;t.classList.add('show');setTimeout(function(){t.classList.remove('show')},2500)}
+function rupees(n){return '₹'+n.toLocaleString('en-IN')}
+
+// ==================== LOCALSTORAGE PERSISTENCE ====================
+function savePlayers(){try{localStorage.setItem('funfridayPlayers',JSON.stringify(players))}catch(e){console.error('Save players failed:',e)}}
+function loadPlayers(){try{var saved=localStorage.getItem('funfridayPlayers');if(saved)players=JSON.parse(saved)}catch(e){console.error('Load players failed:',e)}}
+function saveTeams(){try{localStorage.setItem('funfridayTeams',JSON.stringify(currentTeams))}catch(e){console.error('Save teams failed:',e)}}
+function loadTeams(){try{var saved=localStorage.getItem('funfridayTeams');if(saved)currentTeams=JSON.parse(saved)}catch(e){console.error('Load teams failed:',e)}}
+function saveTeamCount(){try{localStorage.setItem('funfridayTeamCount',selectedTeamCount)}catch(e){console.error('Save team count failed:',e)}}
+function loadTeamCount(){try{var saved=localStorage.getItem('funfridayTeamCount');if(saved)selectedTeamCount=parseInt(saved)}catch(e){console.error('Load team count failed:',e)}}
+function createParticles(){var c=$('particles'),cols=['#f093fb','#4facfe','#fa709a','#a18cd1','#43e97b','#feca57','#ff6b6b'];for(var i=0;i<25;i++){var p=document.createElement('div');p.classList.add('particle');var s=Math.random()*6+2;p.style.width=s+'px';p.style.height=s+'px';p.style.left=Math.random()*100+'%';p.style.background=cols[Math.floor(Math.random()*cols.length)];p.style.animationDuration=(Math.random()*15+10)+'s';p.style.animationDelay=(Math.random()*10)+'s';c.appendChild(p)}}
+createParticles();
+
+// ==================== SIDEBAR ====================
+function toggleSidebar(){$('sidebar').classList.toggle('active');$('sidebarOverlay').classList.toggle('active')}
+function addPlayer(){var i=$('playerNameInput'),n=i.value.trim();if(!n)return;if(players.length>=200)return showToast('⚠️ Max 200!');if(players.find(function(p){return p.toLowerCase()===n.toLowerCase()}))return showToast('⚠️ Already exists!');players.push(n);savePlayers();i.value='';i.focus();updateUI();showToast('✅ '+n+' added!')}
+function bulkAddPlayers(){var i=$('bulkInput'),r=i.value.trim();if(!r)return;var ns=r.split(',').map(function(x){return x.trim()}).filter(function(x){return x.length>0}),a=0;ns.forEach(function(n){if(players.length>=200)return;if(n.length>30)n=n.substring(0,30);if(!players.find(function(p){return p.toLowerCase()===n.toLowerCase()})){players.push(n);a++}});savePlayers();i.value='';updateUI();showToast('✅ '+a+' added!')}
+function removePlayer(i){var n=players[i];players.splice(i,1);savePlayers();updateUI();showToast('🗑️ '+n+' removed')}
+function clearAllPlayers(){if(!players.length||!confirm('Remove all?'))return;players=[];savePlayers();updateUI();showToast('🗑️ Cleared')}
+function updateUI(){$('playerBadge').textContent=players.length;$('playerCount').textContent=players.length+' player'+(players.length!==1?'s':'');$('statPlayers').textContent=players.length>0?players.length:'2-200';var l=$('playerList'),e=$('emptyState');if(!players.length){l.innerHTML='';l.appendChild(e);e.style.display='block'}else{l.innerHTML='';players.forEach(function(n,i){var c=avatarColors[i%avatarColors.length],ini=n.split(' ').map(function(w){return w[0]}).join('').substring(0,2).toUpperCase(),d=document.createElement('div');d.className='player-item';d.innerHTML='<div class="player-info"><div class="player-avatar" style="background:'+c+'">'+ini+'</div><span class="player-name">'+esc(n)+'</span></div><button class="player-remove" onclick="event.stopPropagation();removePlayer('+i+')">✕</button>';l.appendChild(d)})}$('shuffleBtn').disabled=players.length<2}
+function selectTeamCount(c){if(!c||c<2)c=2;if(c>50)c=50;selectedTeamCount=c;saveTeamCount();[2,3,4,5].forEach(function(n){var b=$('teamBtn'+n);if(b)b.classList.toggle('active',n===c)});$('customTeamInput').value=c>5?c:''}
+function shuffleAndDistribute(){if(players.length<2)return showToast('⚠️ Need 2+ players!');if(selectedTeamCount>players.length)return showToast('⚠️ Too few players!');var s=[].concat(players);for(var i=s.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=s[i];s[i]=s[j];s[j]=t}var teams=[];for(var k=0;k<selectedTeamCount;k++)teams.push({members:[],captain:null});s.forEach(function(p,i){teams[i%selectedTeamCount].members.push(p)});teams.forEach(function(t){if(t.members.length)t.captain=t.members[0]});currentTeams=teams;saveTeams();renderTeams(teams);showToast('🎉 '+selectedTeamCount+' teams created!')}
+function getInitials(n){return n.split(' ').map(function(w){return w[0]}).join('').substring(0,2).toUpperCase()}
+function renderTeams(teams){var c=$('teamsDisplay');c.innerHTML='';teams.forEach(function(team,i){var col=teamColors[i%teamColors.length],card=document.createElement('div');card.className='team-card';card.style.background=col.bg;card.style.borderColor=col.border;var capHtml='';if(team.captain){var cc=avatarColors[players.indexOf(team.captain)%avatarColors.length]||col.dot;capHtml='<div class="team-captain-row"><span class="captain-crown">👑</span><div class="captain-avatar" style="background:'+cc+'">'+getInitials(team.captain)+'</div><div class="captain-info"><span class="captain-label">Captain</span><span class="captain-name">'+esc(team.captain)+'</span></div></div>'}var others=team.members.filter(function(m){return m!==team.captain}),mHtml='';if(others.length){mHtml='<div class="team-members-wrap">';others.forEach(function(n){mHtml+='<span class="team-member"><span class="member-dot" style="background:'+col.dot+'"></span>'+esc(n)+'</span>'});mHtml+='</div>'}card.innerHTML='<div class="team-card-header" style="background:'+col.header+'"><span class="team-card-title">'+col.name+'</span><span class="team-card-count">'+team.members.length+' player'+(team.members.length!==1?'s':'')+'</span></div><div class="team-card-body">'+capHtml+mHtml+'</div>';c.appendChild(card)})}
+function getSharedTeamsForGames(){
+    if(!currentTeams.length)return [];
+    return currentTeams.map(function(t,i){
+        var brand=i<WOF_TEAM_COLORS.length?WOF_TEAM_COLORS[i]:{name:'Team '+(i+1),hex:teamColors[i%teamColors.length].dot};
+        var style=teamColors[i%teamColors.length];
+        var members=(t.members||[]).slice();
+        var captain=t.captain||members[0]||'';
+        return {name:brand.name,color:brand.hex,bg:style.bg,border:style.border,members:members,captain:captain};
+    }).filter(function(t){return t.members.length>0});
+}
+loadPlayers();loadTeams();loadTeamCount();selectTeamCount(selectedTeamCount);if(currentTeams.length)renderTeams(currentTeams);updateUI();
+
+// ==================== GAME DATA & MODAL ====================
+var gameData={
+    wheel:{emoji:'🎰',title:'Wheel of Fortune',gradient:'linear-gradient(135deg,#f093fb,#f5576c)',glow:'rgba(245,87,108,0.4)',desc:'Spin the wheel, guess letters, and solve phrase puzzles to earn Rupees! India Edition with 3 teams.',rules:['Teams take turns spinning the wheel','Guess consonants to earn money','Buy vowels for ₹5,000','Solve the puzzle to win the round','Team with most total winnings wins!']},
+    antakshari:{emoji:'🎤',title:'Antakshari',gradient:'linear-gradient(135deg,#4facfe,#00f2fe)',glow:'rgba(79,172,254,0.4)',desc:'The beloved desi singing battle!',rules:['Divide into teams','Sing songs starting with the last letter','30 seconds to start','No repeats!']},
+    charades:{emoji:'🎭',title:'Dumb Charades',gradient:'linear-gradient(135deg,#fa709a,#fee140)',glow:'rgba(250,112,154,0.4)',desc:'Act out movie names without speaking!',rules:['Two teams','No speaking or lip-syncing','2 minutes per turn']},
+    emoji:{emoji:'🧩',title:'Guess the Song / Movie',gradient:'linear-gradient(135deg,#a18cd1,#fbc2eb)',glow:'rgba(161,140,209,0.4)',desc:'Emoji puzzle showdown with turns, hints, attempts, and live team scoring.',rules:['Teams rotate after every question','3 attempts per puzzle','Hint costs 5 points','Correct answer gives base + bonuses','Final leaderboard and full question history']},
+    skribbl:{emoji:'🎨',title:'Skribbl',gradient:'linear-gradient(135deg,#43e97b,#38f9d7)',glow:'rgba(67,233,123,0.4)',desc:'Draw and guess words!',rules:['Create a room on skribbl.io','Draw the given word','Others guess in chat']}
+};
+function openModal(k){currentGame=k;var g=gameData[k];$('modalHeader').style.background=g.gradient;$('modalEmoji').textContent=g.emoji;$('modalTitle').textContent=g.title;$('modalDesc').textContent=g.desc;var r=$('modalRules');r.innerHTML='';g.rules.forEach(function(ru){var li=document.createElement('li');li.textContent=ru;r.appendChild(li)});$('modalBtn').style.background=g.gradient;$('gameModal').classList.add('active');document.body.style.overflow='hidden'}
+function closeModal(){$('gameModal').classList.remove('active');document.body.style.overflow='';currentGame=null}
+$('gameModal').addEventListener('click',function(e){if(e.target===this)closeModal()});
+document.addEventListener('keydown',function(e){if(e.key==='Escape'){if($('gameModal').classList.contains('active'))closeModal();else if($('sidebar').classList.contains('active'))toggleSidebar();else if(wof.solveOpen)wofCloseSolve()}if($('wofGame').classList.contains('active')&&!wof.solveOpen){var k=e.key.toUpperCase();if(k==='ENTER'&&wof.phase==='idle'){e.preventDefault();wofSpin()}else if(/^[A-Z]$/.test(k)){e.preventDefault();wofGuess(k)}}});
+function startGame(){if(currentGame==='wheel'){closeModal();wofStartGame()}else if(currentGame==='antakshari'){closeModal();akStartGame()}else if(currentGame==='emoji'){closeModal();emojiStartGame()}else{closeModal();launchConfetti()}}
+
+// ==================== WHEEL OF FORTUNE ====================
+function wofStartGame(){if(players.length<3){showToast('⚠️ Add at least 3 players in the sidebar first!');return}wof.teams=[{name:WOF_TEAM_COLORS[0].name,members:[],captain:null,bank:0,total:0},{name:WOF_TEAM_COLORS[1].name,members:[],captain:null,bank:0,total:0},{name:WOF_TEAM_COLORS[2].name,members:[],captain:null,bank:0,total:0}];if(currentTeams.length===3){currentTeams.forEach(function(t,i){wof.teams[i].members=(t.members||[]).slice();wof.teams[i].captain=t.captain||wof.teams[i].members[0]||null})}else{var s=[].concat(players);for(var i=s.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var tmp=s[i];s[i]=s[j];s[j]=tmp}s.forEach(function(p,i){wof.teams[i%3].members.push(p)});wof.teams.forEach(function(t){if(t.members.length)t.captain=t.members[0]})}wof.phase='idle';wof.teamIdx=0;wof.round=1;wof.usedIdx=new Set();wof.wheelAngle=0;$('mainPage').classList.add('hidden');$('wofGame').classList.add('active');wofDrawWheel();wofLoadPuzzle();wofRender();var tm=wof.teams[0];wofSetStatus('<strong style="color:'+WOF_TEAM_COLORS[0].hex+'">'+esc(tm.name)+'</strong>\'s turn! 👑 Captain: <strong>'+esc(tm.captain)+'</strong>. Spin the wheel!')}
+function wofBackToMenu(){if(!confirm('Leave the game?'))return;$('wofGame').classList.remove('active');$('mainPage').classList.remove('hidden');wof.phase='setup'}
+function wofEndGameEarly(){if(!confirm('End game now?'))return;wofShowEndGame()}
+function wofSetStatus(h){$('wofStatus').innerHTML=h}
+
+// Draw Wheel
+function wofDrawWheel(){
+    var cv=$('wofWheelCanvas');
+    var displaySize=cv.clientWidth||420;
+    var dpr=window.devicePixelRatio||1;
+    cv.width=Math.floor(displaySize*dpr);
+    cv.height=Math.floor(displaySize*dpr);
+
+    var ctx=cv.getContext('2d');
+    ctx.setTransform(dpr,0,0,dpr,0,0);
+
+    var sz=displaySize;
+    var cx=sz/2,cy=sz/2,r=sz/2-10;
+    var sa=2*Math.PI/WOF_SEGMENTS.length;
+
+    function getSegmentLines(seg){
+        if(seg.type==='bankrupt')return ['BANKRUPT'];
+        if(seg.type==='loseturn')return ['LOSE','TURN'];
+        if(seg.type==='freevowel')return ['FREE','VOWEL'];
+        return [seg.label];
+    }
+
+    WOF_SEGMENTS.forEach(function(seg,i){
+        var a1=i*sa-Math.PI/2;
+        var a2=a1+sa;
+        var mid=a1+sa/2;
+
+        ctx.beginPath();
+        ctx.moveTo(cx,cy);
+        ctx.arc(cx,cy,r,a1,a2);
+        ctx.closePath();
+        ctx.fillStyle=seg.color;
+        ctx.fill();
+        ctx.strokeStyle='rgba(255,255,255,0.28)';
+        ctx.lineWidth=1.5;
+        ctx.stroke();
+
+        var lines=getSegmentLines(seg);
+        var textRadius=r*0.68;
+        var textX=cx+Math.cos(mid)*textRadius;
+        var textY=cy+Math.sin(mid)*textRadius;
+
+        ctx.save();
+        ctx.translate(textX,textY);
+
+        var angle=mid*180/Math.PI;
+        if(angle>90&&angle<270){
+            ctx.rotate(mid+Math.PI);
+        }else{
+            ctx.rotate(mid);
+        }
+
+        ctx.textAlign='center';
+        ctx.textBaseline='middle';
+        ctx.fillStyle=seg.type==='loseturn'?'#2d3436':'#fff';
+
+        var fontSize=seg.type==='cash'?13:11;
+        if(sz<=360)fontSize=12;
+        ctx.font='700 '+fontSize+'px Poppins';
+
+        if(lines.length===1){
+            ctx.fillText(lines[0],0,0);
+        }else if(lines.length===2){
+            ctx.fillText(lines[0],0,-8);
+            ctx.fillText(lines[1],0,8);
+        }
+        ctx.restore();
+    });
+
+    for(var d=0;d<40;d++){
+        var a=(d/40)*Math.PI*2;
+        ctx.beginPath();
+        ctx.arc(cx+Math.cos(a)*(r+2),cy+Math.sin(a)*(r+2),2.2,0,Math.PI*2);
+        ctx.fillStyle=d%2===0?'#ffd700':'#fff';
+        ctx.fill();
+    }
+}
+
+// Spin
+function wofSpin(){if(wof.phase!=='idle')return;wof.phase='spinning';var extra=5+Math.random()*5,randA=Math.random()*360,total=extra*360+randA;wof.wheelAngle+=total;var cv=$('wofWheelCanvas');cv.style.transition='transform 4s cubic-bezier(0.17,0.67,0.12,0.99)';cv.style.transform='rotate('+wof.wheelAngle+'deg)';wofRender();setTimeout(function(){var norm=wof.wheelAngle%360,pa=(360-norm%360)%360,si=Math.floor(pa/(360/WOF_SEGMENTS.length)),seg=WOF_SEGMENTS[si%WOF_SEGMENTS.length];wofHandleResult(seg)},4300)}
+function wofHandleResult(seg){var tm=wof.teams[wof.teamIdx],tc=WOF_TEAM_COLORS[wof.teamIdx].hex,tn=esc(tm.name);if(seg.type==='cash'){wof.spinVal=seg.value;wof.phase='guessing';wofSetStatus('<strong style="color:'+tc+'">'+tn+'</strong> landed on <strong style="color:#ffd700">'+seg.label+'</strong>! 🎉 Pick a consonant.')}else if(seg.type==='bankrupt'){tm.bank=0;wof.spinVal=0;wofSetStatus('<strong style="color:'+tc+'">'+tn+'</strong> hit <strong style="color:#ff6b6b">BANKRUPT</strong>! 💸 Round bank wiped. Turn passes.');setTimeout(function(){wofPassTurn()},1800)}else if(seg.type==='loseturn'){wof.spinVal=0;wofSetStatus('<strong style="color:'+tc+'">'+tn+'</strong> hit <strong>LOSE A TURN</strong>! 😬 Turn passes.');setTimeout(function(){wofPassTurn()},1800)}else if(seg.type==='freevowel'){var uv=[];for(var i=0;i<VOWELS.length;i++){var v=VOWELS[i];if(!wof.used.has(v)&&wof.puzzle.phrase.indexOf(v)>=0)uv.push(v)}if(uv.length){wof.freeVowel=true;wof.phase='buying_vowel';wofSetStatus('<strong style="color:'+tc+'">'+tn+'</strong> got a <strong style="color:#e84393">FREE VOWEL</strong>! 🎁 Pick a vowel.')}else{wofSetStatus('<strong style="color:'+tc+'">'+tn+'</strong> got FREE VOWEL, but none remain! Spin again.');wof.phase='idle'}}wofRender()}
+
+// Guess Letter
+function wofGuess(letter){if(wof.solveOpen)return;var ae=document.activeElement;if(ae&&(ae.tagName==='INPUT'||ae.tagName==='TEXTAREA'))return;letter=letter.toUpperCase();if(!/^[A-Z]$/.test(letter)||wof.used.has(letter))return;var isV=VOWELS.indexOf(letter)>=0,tm=wof.teams[wof.teamIdx],tc=WOF_TEAM_COLORS[wof.teamIdx].hex,tn=esc(tm.name);if(wof.phase==='guessing'){if(isV){showToast('Pick a consonant!');return}wof.used.add(letter);var cnt=wofCount(letter);if(cnt>0){wofReveal(letter);var earned=cnt*wof.spinVal;tm.bank+=earned;wofSetStatus('<strong style="color:'+tc+'">'+tn+'</strong> found <strong>'+cnt+'</strong> × <strong>'+letter+'</strong>! Earned <strong style="color:#ffd700">'+rupees(earned)+'</strong>! 🎉');wof.phase='idle';wof.spinVal=0;if(wofSolved()){wofWinRound();return}}else{wofSetStatus('<strong style="color:'+tc+'">'+tn+'</strong> guessed <strong>'+letter+'</strong> — not found! ❌ Turn passes.');wof.phase='idle';wof.spinVal=0;setTimeout(function(){wofPassTurn()},1500)}}else if(wof.phase==='buying_vowel'){if(!isV){showToast('Pick a vowel!');return}if(!wof.freeVowel){if(tm.bank<5000){showToast('Need ₹5,000!');return}tm.bank-=5000}wof.used.add(letter);var cnt=wofCount(letter);if(cnt>0){wofReveal(letter);wofSetStatus('<strong style="color:'+tc+'">'+tn+'</strong> found <strong>'+cnt+'</strong> × <strong>'+letter+'</strong>! 🎉');wof.freeVowel=false;wof.phase='idle';if(wofSolved()){wofWinRound();return}}else{var cost=wof.freeVowel?'No cost.':''+rupees(5000)+' deducted.';wofSetStatus('<strong style="color:'+tc+'">'+tn+'</strong> guessed <strong>'+letter+'</strong> — not found! ❌ '+cost+' Turn passes.');wof.freeVowel=false;wof.phase='idle';setTimeout(function(){wofPassTurn()},1500)}}wofRender()}
+function wofCount(l){var c=0;for(var i=0;i<wof.puzzle.phrase.length;i++)if(wof.puzzle.phrase[i]===l)c++;return c}
+function wofReveal(l){wof.revealed.add(l);setTimeout(wofRender,50)}
+function wofSolved(){for(var i=0;i<wof.puzzle.phrase.length;i++){var ch=wof.puzzle.phrase[i];if(/[A-Z]/.test(ch)&&!wof.revealed.has(ch))return false}return true}
+
+// Buy Vowel Button
+function wofBuyVowel(){if(wof.phase!=='idle'&&wof.phase!=='guessing')return;var tm=wof.teams[wof.teamIdx];if(tm.bank<5000){showToast('Need ₹5,000!');return}var hasV=false;for(var i=0;i<VOWELS.length;i++)if(!wof.used.has(VOWELS[i]))hasV=true;if(!hasV){showToast('All vowels used!');return}wof.freeVowel=false;wof.phase='buying_vowel';var tc=WOF_TEAM_COLORS[wof.teamIdx].hex,tn=esc(wof.teams[wof.teamIdx].name);wofSetStatus('<strong style="color:'+tc+'">'+tn+'</strong> is buying a vowel for <strong style="color:#ffd700">'+rupees(5000)+'</strong>. Pick a vowel!');wofRender()}
+function wofSkipVowel(){if(!wof.freeVowel)return;wof.freeVowel=false;wof.phase='idle';wofSetStatus('Skipped free vowel. Spin again!');wofRender()}
+
+// Solve
+function wofOpenSolve(){if(wof.phase!=='idle'&&wof.phase!=='guessing')return;wof.solveOpen=true;$('wofSolveOverlay').classList.add('active');$('wofSolveInput').value='';setTimeout(function(){$('wofSolveInput').focus()},100)}
+function wofCloseSolve(){wof.solveOpen=false;$('wofSolveOverlay').classList.remove('active')}
+function wofSubmitSolve(){var g=$('wofSolveInput').value.trim().toUpperCase();wofCloseSolve();if(!g)return;var tm=wof.teams[wof.teamIdx],tc=WOF_TEAM_COLORS[wof.teamIdx].hex,tn=esc(tm.name);if(g===wof.puzzle.phrase){for(var i=0;i<wof.puzzle.phrase.length;i++){var ch=wof.puzzle.phrase[i];if(/[A-Z]/.test(ch))wof.revealed.add(ch)}wofSetStatus('<strong style="color:'+tc+'">'+tn+'</strong> solved it! 🎉🎉🎉');wofRender();wofWinRound()}else{wofSetStatus('<strong style="color:'+tc+'">'+tn+'</strong> guessed wrong! ❌ Turn passes.');wof.phase='idle';setTimeout(function(){wofPassTurn()},1800)}}
+
+// Turn Pass
+function wofPassTurn(){wof.teamIdx=(wof.teamIdx+1)%3;wof.spinVal=0;wof.freeVowel=false;wof.phase='idle';var tm=wof.teams[wof.teamIdx],tc=WOF_TEAM_COLORS[wof.teamIdx].hex;wofSetStatus('It\'s <strong style="color:'+tc+'">'+esc(tm.name)+'</strong>\'s turn! 👑 Captain: <strong>'+esc(tm.captain||'—')+'</strong>. Spin the wheel!');wofRender()}
+
+// Win Round
+function wofWinRound(){wof.phase='solved';var tm=wof.teams[wof.teamIdx],win=Math.max(tm.bank,1000);tm.total+=win;var tc=WOF_TEAM_COLORS[wof.teamIdx].hex,scores='';wof.teams.forEach(function(t,i){scores+='<div class="wof-rs-card"><div class="wof-rs-name" style="color:'+WOF_TEAM_COLORS[i].hex+'">'+esc(t.name)+'</div><div class="wof-rs-total">'+rupees(t.total)+'</div></div>'});$('wofRoundModal').innerHTML='<div style="font-size:3rem;margin-bottom:10px">🎉🏆🎊</div><h2 style="color:'+tc+'">'+esc(tm.name)+' wins the round!</h2><div class="wof-answer-reveal">'+esc(wof.puzzle.phrase)+'</div><div class="wof-winnings">Round Winnings: '+rupees(win)+'</div><div class="wof-round-scores">'+scores+'</div><div class="wof-round-actions"><button class="wof-act-btn wof-solve-btn" onclick="wofNextRound()">🎡 Next Round</button><button class="wof-act-btn wof-btn-end" onclick="wofShowEndGame()">🏁 End Game</button></div>';$('wofRoundOverlay').classList.add('active');launchConfetti()}
+function wofNextRound(){$('wofRoundOverlay').classList.remove('active');wof.round++;wof.teams.forEach(function(t){t.bank=0});wof.teamIdx=(wof.teamIdx+1)%3;wofLoadPuzzle();wof.phase='idle';var tm=wof.teams[wof.teamIdx],tc=WOF_TEAM_COLORS[wof.teamIdx].hex;wofSetStatus('Round '+wof.round+'! <strong style="color:'+tc+'">'+esc(tm.name)+'</strong>\'s turn. Spin the wheel!');wofRender()}
+
+// Load Puzzle
+function wofLoadPuzzle(){if(wof.usedIdx.size>=WOF_PUZZLES.length)wof.usedIdx.clear();var idx;do{idx=Math.floor(Math.random()*WOF_PUZZLES.length)}while(wof.usedIdx.has(idx));wof.usedIdx.add(idx);wof.puzzle=WOF_PUZZLES[idx];wof.revealed=new Set();wof.used=new Set();wof.spinVal=0;wof.freeVowel=false}
+
+// End Game
+function wofShowEndGame(){$('wofRoundOverlay').classList.remove('active');wof.phase='setup';var sorted=wof.teams.map(function(t,i){return{name:t.name,members:t.members,captain:t.captain,total:t.total,idx:i}}).sort(function(a,b){return b.total-a.total});var medals=['🥇','🥈','🥉'],html='<h2>🏆 Final Results</h2>';sorted.forEach(function(t,rank){var c=WOF_TEAM_COLORS[t.idx].hex,mem=t.members.map(function(m){return m===t.captain?'👑 '+esc(m):esc(m)}).join(', ');html+='<div class="wof-final-team" style="border-color:'+c+'"><div class="wof-ft-header"><div class="wof-ft-name"><span style="font-size:1.2rem">'+(medals[rank]||'')+'</span><span style="color:'+c+'">'+esc(t.name)+'</span></div><div class="wof-ft-amount">'+rupees(t.total)+'</div></div><div class="wof-ft-members">'+mem+'</div></div>'});html+='<div class="wof-end-actions"><button class="wof-act-btn wof-spin-btn" onclick="wofPlayAgain()">🔄 Play Again</button><button class="wof-act-btn wof-solve-btn" onclick="wofNewPlayers()">⚙️ New Players</button><button class="wof-act-btn wof-btn-back" onclick="wofBackToHome()">🏠 Back to Home</button></div>';$('wofEndModal').innerHTML=html;$('wofEndOverlay').classList.add('active');launchConfetti()}
+function wofPlayAgain(){$('wofEndOverlay').classList.remove('active');wof.teams.forEach(function(t){t.bank=0;t.total=0});wof.round=1;wof.teamIdx=0;wof.usedIdx.clear();wofLoadPuzzle();wof.phase='idle';wofSetStatus('New game! <strong style="color:'+WOF_TEAM_COLORS[0].hex+'">'+esc(wof.teams[0].name)+'</strong>\'s turn!');wofRender()}
+function wofNewPlayers(){$('wofEndOverlay').classList.remove('active');$('wofGame').classList.remove('active');$('mainPage').classList.remove('hidden');wof.phase='setup'}
+function wofBackToHome(){$('wofEndOverlay').classList.remove('active');$('wofGame').classList.remove('active');$('mainPage').classList.remove('hidden');wof.phase='setup'}
+
+// ==================== RENDER ====================
+function wofRender(){wofRenderInfo();wofRenderBoard();wofRenderTeams();wofRenderActions();wofRenderKeyboard();var cv=$('wofWheelCanvas');if(cv){cv.style.transition=wof.phase==='spinning'?'transform 4s cubic-bezier(0.17,0.67,0.12,0.99)':'none';cv.style.transform='rotate('+wof.wheelAngle+'deg)'}}
+function wofRenderInfo(){var sv='—';if(wof.freeVowel)sv='FREE 🎁';else if(wof.spinVal>0)sv=rupees(wof.spinVal);$('wofInfoBar').innerHTML='<div class="wof-chip">📂 Category: <b>'+(wof.puzzle?esc(wof.puzzle.category):'—')+'</b></div><div class="wof-chip">🎡 Spin: <b>'+sv+'</b></div><div class="wof-chip">🔄 Round: <b>'+wof.round+'</b></div>'}
+function wofRenderBoard(){if(!wof.puzzle){$('wofBoard').innerHTML='<div class="wof-category">Loading...</div>';return}var p=wof.puzzle.phrase,cat=wof.puzzle.category,words=p.split(' '),rows=[],cur='';words.forEach(function(w){if(!cur.length)cur=w;else if(cur.length+1+w.length<=14)cur+=' '+w;else{rows.push(cur);cur=w}});if(cur)rows.push(cur);var html='<div class="wof-category">📂 '+esc(cat)+'</div>';rows.forEach(function(row){html+='<div class="wof-puzzle-row">';for(var i=0;i<row.length;i++){var ch=row[i];if(ch===' ')html+='<div class="wof-tile wof-tile-space"></div>';else if(/[A-Z]/.test(ch)){var rev=wof.revealed.has(ch);html+='<div class="wof-tile wof-tile-letter'+(rev?' revealed':'')+'">'+ch+'</div>'}else html+='<div class="wof-tile wof-tile-punct">'+ch+'</div>'}html+='</div>'});$('wofBoard').innerHTML=html}
+function wofRenderTeams(){var html='';wof.teams.forEach(function(t,i){var active=i===wof.teamIdx&&wof.phase!=='solved',c=WOF_TEAM_COLORS[i],others=t.members.filter(function(m){return m!==t.captain}).map(function(m){return esc(m)}).join(', ');html+='<div class="wof-team-card'+(active?' active-team':'')+'" data-t="'+i+'"><div class="wof-playing-badge">🎯 PLAYING</div><div class="wof-tc-header" data-t="'+i+'"><div class="wof-tc-name" style="color:'+c.hex+'">'+esc(t.name)+'</div><div class="wof-tc-captain">👑 '+esc(t.captain||'—')+'</div></div>'+(others?'<div class="wof-tc-members">'+others+'</div>':'')+'<div class="wof-tc-scores"><div class="wof-score-box"><div class="wof-score-label">Round Bank</div><div class="wof-score-val">'+rupees(t.bank)+'</div></div><div class="wof-score-box"><div class="wof-score-label">Total</div><div class="wof-score-val">'+rupees(t.total)+'</div></div></div></div>'});$('wofTeamsCol').innerHTML=html}
+function wofRenderActions(){var ph=wof.phase,tm=wof.teams[wof.teamIdx],canSpin=ph==='idle',canVowel=(ph==='idle'||ph==='guessing')&&tm.bank>=5000,canSolve=ph==='idle'||ph==='guessing',showSkip=ph==='buying_vowel'&&wof.freeVowel;var hasUnusedV=false;for(var i=0;i<VOWELS.length;i++)if(!wof.used.has(VOWELS[i]))hasUnusedV=true;canVowel=canVowel&&hasUnusedV;var html='<button class="wof-act-btn wof-spin-btn" '+(canSpin?'':'disabled')+' onclick="wofSpin()">🎡 Spin</button>';html+='<button class="wof-act-btn wof-vowel-btn" '+(canVowel?'':'disabled')+' onclick="wofBuyVowel()">💰 Buy Vowel (₹5K)</button>';html+='<button class="wof-act-btn wof-solve-btn" '+(canSolve?'':'disabled')+' onclick="wofOpenSolve()">💡 Solve</button>';if(showSkip)html+='<button class="wof-act-btn wof-skip-btn" onclick="wofSkipVowel()">⏭️ Skip Vowel</button>';$('wofActions').innerHTML=html}
+function wofRenderKeyboard(){var html='',ph=wof.phase,vp=ph==='buying_vowel';'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('').forEach(function(l){var isV=VOWELS.indexOf(l)>=0,used=wof.used.has(l),cls='wof-key';if(isV)cls+=' vowel';var dis=false;if(used){cls+=wof.puzzle&&wof.puzzle.phrase.indexOf(l)>=0?' correct':' wrong';cls+=' used';dis=true}else if(ph==='spinning'||ph==='solved'||ph==='setup')dis=true;else if(ph==='guessing'&&isV)dis=true;else if(ph==='buying_vowel'&&!isV)dis=true;else if(ph==='idle')dis=true;if(vp&&isV&&!used){cls+=' glow';dis=false}html+='<button class="'+cls+'" '+(dis?'disabled':'')+' onclick="wofGuess(\''+l+'\')">'+l+'</button>'});$('wofKeyboard').innerHTML=html}
+
+// ==================== ANTAKSHARI ====================
+const BOLLYWOOD_SONGS={A:['Ae Dil Hai Mushkil','Abhi Na Jao Chhod Kar','Agar Tum Saath Ho'],B:['Baharon Phool Barsao','Bol Do Na Zara','Balam Pichkari'],C:['Chaiyya Chaiyya','Chura Liya Hai Tumne','Channa Mereya'],D:['Dil To Pagal Hai','Deewana Hai Dekho','Dil Chahta Hai'],E:['Ek Ladki Ko Dekha','Enna Sona'],F:['Filhall','Fir Bhi Tumko Chaahunga'],G:['Gallan Goodiyaan','Gerua','Ghungroo'],H:['Hum Tum Ek Kamre Mein','Hawayein','Hua Hai Aaj Pehli Baar'],I:['Ishq Wala Love','Ilahi'],J:['Jab Koi Baat Bigad Jaye','Jeene Laga Hoon','Jashn-E-Bahaaraa'],K:['Kal Ho Naa Ho','Kabhi Kabhi Mere Dil Mein','Kuch Kuch Hota Hai'],L:['Lag Ja Gale','Laal Ishq','London Thumakda'],M:['Mere Rashke Qamar','Maahi Ve','Muskurane Ki Wajah'],N:['Naina Da Kya Kasoor','Nashe Si Chadh Gayi','Namo Namo'],O:['O Sajna Barkha Bahar Aayi','Oh Humsafar'],P:['Pehla Nasha','Pal Pal Dil Ke Paas','Phir Bhi Tumko Chaahunga'],Q:['Qismat Mein Jo Likha'],R:['Rang Barse','Raabta','Roop Tera Mastana'],S:['Senorita','Suraj Hua Maddham','Soch Na Sake'],T:['Tum Hi Ho','Tera Ban Jaunga','Tu Jaane Na'],U:['Udd Gaye','Uff Teri Adaa'],V:['Ve Maahi','Voh Ladki Nahi Zindagi Hai'],W:['Woh Lamhe'],X:['Try any song starting with X!'],Y:['Ye Jo Des Hai Tera','Yeh Ishq Haaye'],Z:['Zara Zara','Zaalima','Zing Zing Zingaat']};
+
+const EMOJI_MOVIE_PUZZLES=[
+    {emoji:'🦁👑🌍',answer:'The Lion King',hint:'Animated Disney classic set in the Pride Lands'},
+    {emoji:'🕐🚗⚡👴👦',answer:'Back to the Future',hint:'A time-traveling DeLorean and Doc Brown'},
+    {emoji:'🚢💎🧊',answer:'Titanic',hint:'Ship, iceberg, and "My Heart Will Go On"'},
+    {emoji:'🦖🏞️⚠️',answer:'Jurassic Park',hint:'Dinosaurs in a theme park gone wrong'},
+    {emoji:'🦇🌃🃏',answer:'The Dark Knight',hint:'Batman faces the Joker in Gotham'},
+    {emoji:'💤🧠🏙️',answer:'Inception',hint:'Dream within a dream heist'},
+    {emoji:'🙎🏻‍♂️🟩💊🕶️',answer:'The Matrix',hint:'Choose the red or blue pill'},
+    {emoji:'🐟🔍🌊',answer:'Finding Nemo',hint:'A father searches the ocean for his son'},
+    // {emoji:'👨‍👩‍👦🍝🔫',answer:'The Godfather',hint:'Mafia family saga by Coppola'},
+    {emoji:'🦍🏙️🗽',answer:'King Kong',hint:'Giant ape climbs a famous skyscraper'},
+    {emoji:'🏠👦🎄',answer:'Home Alone',hint:'Kid protects his house from burglars'},
+    {emoji:'🧸🧑‍🚀🤠🚀',answer:'Toy Story',hint:'Woody and Buzz adventure'},
+    {emoji:'❄️👭⛄',answer:'Frozen',hint:'Sisters, ice powers, and "Let It Go"'},
+    {emoji:'🧑‍🚀🌌🪐',answer:'Interstellar',hint:'Space mission to save humanity'},
+    // {emoji:'🥊🧼👥',answer:'Fight Club',hint:'The first rule is not to talk about it'},
+    {emoji:'🕵️‍♂️❌💣🛩️',answer:'Mission Impossible',hint:'Ethan Hunt action franchise'},
+    // {emoji:'📓💑🌧️',answer:'The Notebook',hint:'A romantic story told through a diary'},
+    {emoji:'💰❓👦🏽',answer:'Slumdog Millionaire',hint:'Game show and destiny in Mumbai'},
+    // {emoji:'🏃‍♂️🍫🚌',answer:'Forrest Gump',hint:'"Life is like a box of chocolates"'},
+    {emoji:'✈️🏍️🕶️🔥',answer:'Top Gun',hint:'Fighter pilot Maverick'},
+    {emoji:'🚗💨👨‍👨‍👧',answer:'Fast and Furious',hint:'Street racing and family theme'},
+    // {emoji:'🍻🤕💍',answer:'The Hangover',hint:'Bachelor party gone wild in Vegas'},
+    // {emoji:'🏐🏝️📦',answer:'Cast Away',hint:'A man stranded on an island with Wilson'},
+    {emoji:'🧙‍♂️🌀⏳',answer:'Doctor Strange',hint:'Marvel sorcerer and multiverse portals'},
+    {emoji:'🐆👑🛡️',answer:'Black Panther',hint:'Wakanda forever'},
+    {emoji:'🤖❤️🦾',answer:'Iron Man',hint:'Tony Stark builds a powered suit'},
+    // {emoji:'🎓📚🪶',answer:'Dead Poets Society',hint:'"Carpe Diem" and an inspiring teacher'},
+    {emoji:'📱💻👥',answer:'The Social Network',hint:'Origin story of a famous social media platform'},
+    {emoji:'🎹💃🌃',answer:'La La Land',hint:'Musical romance in Los Angeles'},
+    {emoji:'🧑‍🦽‍➡️🔵🌳🧑',answer:'Avatar',hint:'Pandora and the Na\'vi'},
+    {emoji:'🤠🧑‍🦯🫟🔫🔥',answer:'Sholay',hint:'Classic Bollywood action drama with Jai and Veeru'},
+    {emoji:'❤️🚆🌾',answer:'Dilwale Dulhania Le Jayenge',hint:'Raj and Simran iconic romance'},
+    {emoji:'3️⃣🤪🎓',answer:'3 Idiots',hint:'Engineering college story of three friends'},
+    {emoji:'🏏💰🇮🇳',answer:'Lagaan',hint:'Villagers challenge the British in a cricket match'},
+    {emoji:'🤼‍♀️👨‍👧‍👧🏅',answer:'Dangal',hint:'Wrestling journey of a father and daughters'},
+    {emoji:'🚗🍅🛣️🌊',answer:'Zindagi Na Milegi Dobara',hint:'Road trip film about friendship and life'},
+    {emoji:'👨‍👩🙂❤️😢💔',answer:'Kabhi Khushi Kabhie Gham',hint:'Family drama with big emotions and reunion'},
+    {emoji:'👬😂💰',answer:'Andaz Apna Apna',hint:'Cult comedy with Amar and Prem'},
+    {emoji:'👑✈️🗼',answer:'Queen',hint:'A solo honeymoon transforms Rani\'s life'},
+    {emoji:'👨‍⚕️🔫🧑‍🦼😂🏥',answer:'Munna Bhai M.B.B.S.',hint:'A gangster joins medical college'},
+    {emoji:'🏑🇮🇳🙌',answer:'Chak De India',hint:'Women\'s hockey team and a comeback coach'},
+    {emoji:'🚀💦⚡️🏡🇮🇳',answer:'Swades',hint:'NASA engineer returns to his village'},
+    {emoji:'👽📻🤔',answer:'PK',hint:'An alien questions beliefs on Earth'},
+    {emoji:'🎤🏙️🔥',answer:'Gully Boy',hint:'Mumbai street rapper rises to fame'},
+    {emoji:'🎬🕺🏻💃🔥',answer:'Om Shanti Om',hint:'Reincarnation and Bollywood glamour'},
+    {emoji:'👽👦✨',answer:'Koi Mil Gaya',hint:'A boy befriends an alien named Jadoo'},
+    // {emoji:'🕵️‍♀️🇮🇳📨',answer:'Raazi',hint:'Indian spy mission across the border'},
+    // {emoji:'🧠❓👩‍🦳',answer:'Kahaani',hint:'A pregnant woman searches for her husband in Kolkata'},
+    // {emoji:'💍🚻🎭',answer:'Vicky Donor',hint:'Unusual comedy around fertility donation'},
+    // {emoji:'🎶❤️🧑‍🤝‍🧑',answer:'Rockstar',hint:'A musician\'s intense love story'}
+];
+
+const EMOJI_SONG_PUZZLES=[
+    // {emoji:'🎸🏨🦅🌙',answer:'Hotel California',hint:'Classic Eagles song about a mysterious hotel'},
+    // {emoji:'👑🎭🎤',answer:'Bohemian Rhapsody',hint:'Queen song with operatic sections'},
+    {emoji:'🔺❤️🫵',answer:'Shape of You',hint:'Ed Sheeran global hit'},
+    // {emoji:'🌃💡✨',answer:'Blinding Lights',hint:'Synth-pop track by The Weeknd'},
+    // {emoji:'🔁⭐',answer:'Counting Stars',hint:'OneRepublic chartbuster'},
+    {emoji:'🙏💭',answer:'Believer',hint:'Imagine Dragons anthem'},
+    // {emoji:'💔🌊',answer:'Rolling in the Deep',hint:'Adele power ballad'},
+    // {emoji:'🙋‍♀️❤️🫵',answer:'Someone Like You',hint:'Adele heartbreak classic'},
+    // {emoji:'📖❤️👸',answer:'Love Story',hint:'Early Taylor Swift hit inspired by Shakespeare'},
+    {emoji:'👋🚗🌅',answer:'See You Again',hint:'Tribute song from Fast and Furious 7'},
+    {emoji:'💍❤️👌',answer:'Perfect',hint:'Romantic ballad by Ed Sheeran'},
+    // {emoji:'⚡🎸',answer:'Thunderstruck',hint:'Iconic AC/DC opening riff'},
+    // {emoji:'👃Teen🧠',answer:'Smells Like Teen Spirit',hint:'Nirvana grunge anthem'},
+    {emoji:'👑🪨🫵',answer:'We Will Rock You',hint:'Stomp-stomp-clap stadium chant'},
+    // {emoji:'🍬👧🎸',answer:'Sweet Child O Mine',hint:'Guns N\' Roses classic'},
+    // {emoji:'🏙️🎺🕺',answer:'Uptown Funk',hint:'Bruno Mars dance floor favorite'},
+    // {emoji:'😈👧',answer:'Bad Guy',hint:'Billie Eilish breakthrough hit'},
+    {emoji:'🚂🌉💃',answer:'Chaiyya Chaiyya',hint:'Bollywood song shot on a moving train'},
+    {emoji:'🫵❤️🌧️',answer:'Tum Hi Ho',hint:'Aashiqui 2 superhit romantic song'},
+    {emoji:'📅✅❌✅',answer:'Kal Ho Naa Ho',hint:'Title track from Shah Rukh Khan film'},
+    {emoji:'🇮🇳🙌',answer:'Jai Ho',hint:'Oscar-winning song from Slumdog Millionaire'},
+    {emoji:'💃🕺☀️',answer:'Senorita',hint:'Popular dance track from ZNMD'},
+    {emoji:'🐯🕺🕺🔥',answer:'Naatu Naatu',hint:'High-energy dance song from RRR'},
+    {emoji:'🛳️✊🗣️🎉👫💍',answer:'Gallan Goodiyaan',hint:'Party song from Dil Dhadakne Do'},
+    {emoji:'👦⏰✅',answer:'Apna Time Aayega',hint:'Motivational rap from Gully Boy'}
+];
+
+let ak={teams:[],currentTeamIndex:0,round:1,currentLetter:null,hintUsed:false,phase:'idle',history:[],submittedSong:''};
+
+function akStartGame(){
+    if(!players.length){showToast('⚠️ Add players in the sidebar first!');return}
+    var sourceTeams=getSharedTeamsForGames();
+    if(sourceTeams.length<2){showToast('⚠️ Create at least 2 teams from the sidebar first!');return}
+    ak.teams=sourceTeams.map(function(t){return{name:t.name,color:t.color,bg:t.bg,border:t.border,members:t.members.slice(),captain:t.captain,score:0,streak:0}});
+    ak.currentTeamIndex=0;ak.round=1;ak.currentLetter=null;ak.hintUsed=false;ak.phase='idle';ak.history=[];ak.submittedSong='';
+    $('mainPage').classList.add('hidden');$('akGame').classList.add('active');
+    akRender();akSetMessage('Press "Give Me a Letter" to start Round 1!','info');
+}
+function akBackToMenu(){if(!confirm('Leave Antakshari?'))return;$('akGame').classList.remove('active');$('mainPage').classList.remove('hidden')}
+function akRender(){akRenderScoreboard();akRenderTurn();$('akRound').textContent=ak.round}
+function akRenderScoreboard(){
+    var html='';ak.teams.forEach(function(t,i){var active=i===ak.currentTeamIndex;
+    var membersHtml='<div class="ak-team-members">'+t.members.map(function(m){return esc(m)}).join(', ')+'</div>';
+    html+='<div class="ak-team-card'+(active?' active-ak-team':'')+'" style="border-color:'+t.color+';'+(active?'box-shadow:0 6px 25px '+t.color+'44;background:'+t.bg+';':'')+'">'+
+        '<div class="ak-team-name" style="color:'+t.color+'">'+esc(t.name)+'</div>'+
+        membersHtml+
+        '<div class="ak-team-score">'+t.score+'</div>'+
+        '<div class="ak-team-streak">pts'+(t.streak>0?' · 🔥×'+t.streak:'')+'</div></div>'});
+    $('akScoreboard').innerHTML=html;
+}
+function akRenderTurn(){var t=ak.teams[ak.currentTeamIndex];$('akTurnText').style.color=t.color;$('akTurnText').textContent='🎤 '+t.name+"'s Turn";$('akTurnSub').textContent=t.captain?'👑 Captain: '+t.captain:''}
+function akSetMessage(msg,type){var el=$('akMessage');el.innerHTML=msg;el.className='ak-message '+(type||'idle')}
+function akGiveLetter(){
+    if(ak.phase!=='idle')return;
+    var letters='ABCDEFGHIJKLMNOPQRSTUVWXYZ';ak.currentLetter=letters[Math.floor(Math.random()*letters.length)];
+    ak.phase='letter_shown';ak.hintUsed=false;
+    var t=ak.teams[ak.currentTeamIndex];
+    $('akLetterWrap').innerHTML='<div class="ak-pulse-ring" style="border:3px solid '+t.color+'"></div>'+
+        '<div class="ak-letter-circle" style="background:linear-gradient(135deg,'+t.color+','+t.color+'88)">'+ak.currentLetter+'</div>';
+    var inp=$('akSongInput');inp.placeholder='Type a Bollywood song starting with '+ak.currentLetter+'...';inp.value='';inp.disabled=false;
+    $('akInputSection').style.display='flex';$('akJudgePanel').style.display='none';$('akHintDisplay').style.display='none';
+    $('akLetterBtn').disabled=true;$('akHintBtn').disabled=false;$('akSkipBtn').disabled=false;
+    akSetMessage('🎤 '+esc(t.name)+' — sing a Bollywood song starting with <strong style="color:'+t.color+'">'+ak.currentLetter+'</strong>!','info');
+    setTimeout(function(){inp.focus()},100);
+}
+function akSubmitSong(){
+    if(ak.phase!=='letter_shown')return;
+    var inp=$('akSongInput'),song=inp.value.trim();if(!song)return;
+    var t=ak.teams[ak.currentTeamIndex],first=song[0].toUpperCase();
+    if(first!==ak.currentLetter){
+        t.streak=0;akAddHistory(t,ak.currentLetter,song,'wrong');
+        akSetMessage('❌ <strong style="color:'+t.color+'">'+esc(t.name)+'</strong> — "'+esc(song)+'" doesn\'t start with <strong>'+ak.currentLetter+'</strong>! Turn passes.','error');
+        inp.disabled=true;$('akHintBtn').disabled=true;$('akSkipBtn').disabled=true;
+        ak.phase='passing';setTimeout(function(){akPassTurn()},2000);return;
+    }
+    ak.submittedSong=song;ak.phase='judging';inp.disabled=true;
+    $('akInputSection').style.display='none';$('akHintBtn').disabled=true;$('akSkipBtn').disabled=true;
+    var panel=$('akJudgePanel');panel.style.display='block';
+    panel.innerHTML='<div class="ak-judge-label">'+esc(t.name)+' says:</div>'+
+        '<div class="ak-judge-song" style="border-color:'+t.color+';color:'+t.color+'">"'+esc(song)+'"</div>'+
+        '<div class="ak-judge-question">Is this a valid Bollywood song starting with <strong>'+ak.currentLetter+'</strong>?</div>'+
+        '<div class="ak-judge-btns">'+
+        '<button class="ak-judge-correct" onclick="akJudge(true)">✅ Correct! (+10)</button>'+
+        '<button class="ak-judge-wrong" onclick="akJudge(false)">❌ Wrong!</button></div>';
+    akSetMessage('🏛️ Judge Panel — host decides!','info');
+}
+function akJudge(correct){
+    var t=ak.teams[ak.currentTeamIndex];$('akJudgePanel').style.display='none';
+    if(correct){t.streak++;var pts=10+(t.streak>=3?5:0);t.score+=pts;akAddHistory(t,ak.currentLetter,ak.submittedSong,'correct');
+        akSetMessage('✅ <strong style="color:'+t.color+'">'+esc(t.name)+'</strong> scores +'+pts+'! 🎉'+(t.streak>=3?' 🔥 Streak bonus!':''),'success');
+        akSpawnConfetti();
+    }else{t.streak=0;akAddHistory(t,ak.currentLetter,ak.submittedSong,'wrong');
+        akSetMessage('❌ <strong style="color:'+t.color+'">'+esc(t.name)+'</strong> — marked wrong. Turn passes.','error');}
+    ak.phase='passing';$('akInputSection').style.display='none';$('akHintDisplay').style.display='none';
+    setTimeout(function(){akPassTurn()},correct?2200:1500);
+}
+function akPassTurn(){
+    ak.currentTeamIndex=(ak.currentTeamIndex+1)%ak.teams.length;
+    if(ak.currentTeamIndex===0)ak.round++;
+    ak.currentLetter=null;ak.hintUsed=false;ak.phase='idle';
+    $('akLetterWrap').innerHTML='<div class="ak-letter-placeholder">Press "Give Me a Letter" to start!</div>';
+    $('akInputSection').style.display='none';$('akJudgePanel').style.display='none';$('akHintDisplay').style.display='none';
+    $('akLetterBtn').disabled=false;$('akHintBtn').disabled=true;$('akSkipBtn').disabled=true;
+    var t=ak.teams[ak.currentTeamIndex];akRender();
+    akSetMessage('It\'s <strong style="color:'+t.color+'">'+esc(t.name)+'</strong>\'s turn! Press "Give Me a Letter".','info');
+}
+function akUseHint(){
+    if(ak.phase!=='letter_shown'||ak.hintUsed)return;
+    ak.hintUsed=true;var t=ak.teams[ak.currentTeamIndex];t.score=Math.max(0,t.score-5);
+    $('akHintBtn').disabled=true;
+    var songs=BOLLYWOOD_SONGS[ak.currentLetter]||[],song=songs[Math.floor(Math.random()*songs.length)]||'No hint!';
+    var half=song.substring(0,Math.ceil(song.length/2))+'...';
+    var hEl=$('akHintDisplay');hEl.style.display='block';hEl.innerHTML='💡 Hint: <strong>'+esc(half)+'</strong> <span style="opacity:0.5;font-size:0.75rem">(-5 pts)</span>';
+    akSetMessage('💡 Hint used! <strong style="color:'+t.color+'">'+esc(t.name)+'</strong> -5 pts.','hint-msg');akRenderScoreboard();
+}
+function akSkip(){
+    if(ak.phase!=='letter_shown')return;
+    var t=ak.teams[ak.currentTeamIndex],songs=BOLLYWOOD_SONGS[ak.currentLetter]||[],ex=songs[0]||'—';
+    t.streak=0;akAddHistory(t,ak.currentLetter,'(skipped)','skip');
+    akSetMessage('⏭️ <strong style="color:'+t.color+'">'+esc(t.name)+'</strong> skipped! Example: <em>'+esc(ex)+'</em>. Turn passes.','info');
+    ak.phase='passing';$('akHintBtn').disabled=true;$('akSkipBtn').disabled=true;$('akInputSection').style.display='none';
+    setTimeout(function(){akPassTurn()},2200);
+}
+function akAddHistory(team,letter,song,status){ak.history.unshift({team:team.name,color:team.color,letter:letter,song:song,status:status});akRenderHistory()}
+function akRenderHistory(){
+    var c=$('akHistory');if(!ak.history.length){c.innerHTML='<div class="ak-history-empty">No rounds played yet</div>';return}
+    var icons={correct:'✅',wrong:'❌',skip:'⏭️'};
+    c.innerHTML=ak.history.map(function(h){return'<div class="ak-history-item">'+
+        '<div class="ak-history-letter" style="background:'+h.color+'33;color:'+h.color+'">'+h.letter+'</div>'+
+        '<div class="ak-history-team" style="color:'+h.color+'">'+esc(h.team)+'</div>'+
+        '<div class="ak-history-song">'+esc(h.song)+'</div>'+
+        '<div class="ak-history-status">'+(icons[h.status]||'')+'</div></div>'}).join('');
+}
+function akToggleRules(){var p=$('akRulesPanel');p.style.display=p.style.display==='none'?'block':'none'}
+function akSpawnConfetti(){var emojis=['🎵','🎤','⭐','🎶','🎉','✨','🌟','💫','🎊'];for(var i=0;i<15;i++){(function(idx){setTimeout(function(){var el=document.createElement('div');el.className='ak-confetti-emoji';el.textContent=emojis[Math.floor(Math.random()*emojis.length)];el.style.left=Math.random()*100+'vw';el.style.top='-30px';el.style.fontSize=(1+Math.random())+'rem';el.style.animationDuration=(1.5+Math.random()*2)+'s';document.body.appendChild(el);setTimeout(function(){el.remove()},3500)},idx*80)})(i)}}
+function akEndGame(){if(!confirm('End Antakshari and see results?'))return;akShowResults()}
+function akShowResults(){
+    var sorted=ak.teams.slice().sort(function(a,b){return b.score-a.score}),medals=['🥇','🥈','🥉'],html='<h2>🏆 Final Results</h2>';
+    sorted.forEach(function(t,rank){var mem=t.members.map(function(m){return m===t.captain?'👑 '+esc(m):esc(m)}).join(', ');
+    html+='<div class="ak-final-team" style="border-color:'+t.color+'">'+
+        '<div class="ak-ft-left"><span style="font-size:1.3rem">'+(medals[rank]||'')+'</span>'+
+        '<div><div class="ak-ft-name" style="color:'+t.color+'">'+esc(t.name)+'</div>'+
+        '<div class="ak-ft-members">'+mem+'</div></div></div>'+
+        '<div class="ak-ft-score">'+t.score+' pts</div></div>'});
+    html+='<div class="ak-end-actions">'+
+        '<button class="ak-btn ak-btn-letter" onclick="akPlayAgain()">🔄 Play Again</button>'+
+        '<button class="ak-btn ak-btn-back" style="background:rgba(255,255,255,0.1);color:white" onclick="akGoHome()">🏠 Back to Home</button></div>';
+    $('akEndModal').innerHTML=html;$('akEndOverlay').classList.add('active');launchConfetti();
+}
+function akPlayAgain(){$('akEndOverlay').classList.remove('active');akStartGame()}
+function akGoHome(){$('akEndOverlay').classList.remove('active');$('akGame').classList.remove('active');$('mainPage').classList.remove('hidden')}
+
+// ==================== GUESS THE SONG / MOVIE ====================
+let emojiGame={mode:'mixed',teams:[],questions:[],questionIndex:0,currentTeamIndex:0,attemptsLeft:3,hintUsed:false,results:[],transitioning:false,lastConfig:null};
+
+function rgbaFromHex(hex,a){
+    if(!hex||hex[0]!=='#')return 'rgba(255,255,255,'+a+')';
+    var h=hex.slice(1);
+    if(h.length===3)h=h[0]+h[0]+h[1]+h[1]+h[2]+h[2];
+    var r=parseInt(h.slice(0,2),16),g=parseInt(h.slice(2,4),16),b=parseInt(h.slice(4,6),16);
+    return 'rgba('+r+','+g+','+b+','+a+')';
+}
+
+function emojiStartGame(){
+    var shared=getSharedTeamsForGames();
+    if(shared.length<2||shared.length>4){showToast('⚠️ Guess mode supports 2 to 4 teams. Set team count in sidebar and shuffle.');return}
+    emojiGame.mode='mixed';
+    emojiGame.teams=shared.map(function(t){return{name:t.name,color:t.color,bg:t.bg,border:t.border,members:t.members.slice(),captain:t.captain,score:0}});
+    emojiGame.questions=[];emojiGame.results=[];emojiGame.transitioning=false;
+    $('mainPage').classList.add('hidden');
+    $('emojiGame').classList.add('active');
+    $('emojiEndOverlay').classList.remove('active');
+    $('emojiTransitionOverlay').classList.remove('active');
+    $('emojiSetupScreen').style.display='block';
+    $('emojiPlayScreen').style.display='none';
+    emojiRenderSetup();
+    emojiSetMode('mixed');
+}
+
+function emojiRenderSetup(){
+    var countHtml='';
+    [2,3,4].forEach(function(n){countHtml+='<span class="emoji-count-pill'+(emojiGame.teams.length===n?' active':'')+'">'+n+' Teams</span>'});
+    $('emojiTeamCount').innerHTML=countHtml;
+
+    var teamsHtml='';
+    emojiGame.teams.forEach(function(t,i){
+        teamsHtml+='<div class="emoji-team-row">'+
+            '<span class="emoji-team-dot" style="background:'+t.color+'"></span>'+
+            '<input class="emoji-team-name-input" type="text" value="'+esc(t.name)+'" readonly>'+
+            '<div class="emoji-team-members">'+esc(t.members.join(', '))+'</div>'+
+            '</div>';
+    });
+    $('emojiTeamList').innerHTML=teamsHtml;
+}
+
+function emojiSetMode(mode){
+    emojiGame.mode=mode;
+    $('emojiModeMovies').classList.toggle('active',mode==='movies');
+    $('emojiModeSongs').classList.toggle('active',mode==='songs');
+    $('emojiModeMixed').classList.toggle('active',mode==='mixed');
+}
+
+function emojiShuffle(list){
+    var arr=list.slice();
+    for(var i=arr.length-1;i>0;i--){
+        var j=Math.floor(Math.random()*(i+1));
+        var t=arr[i];arr[i]=arr[j];arr[j]=t;
+    }
+    return arr;
+}
+
+function emojiBuildQuestionPool(mode){
+    var movies=EMOJI_MOVIE_PUZZLES.map(function(q){return{emoji:q.emoji,answer:q.answer,hint:q.hint,category:'Movie'}});
+    var songs=EMOJI_SONG_PUZZLES.map(function(q){return{emoji:q.emoji,answer:q.answer,hint:q.hint,category:'Song'}});
+    if(mode==='movies')return movies;
+    if(mode==='songs')return songs;
+    return movies.concat(songs);
+}
+
+function emojiWordHint(answer){
+    var words=answer.trim().split(/\s+/).length;
+    var letters=answer.replace(/[^A-Za-z0-9]/g,'').length;
+    return words+' word'+(words!==1?'s':'')+' • '+letters+' letters';
+}
+
+function emojiBeginGame(){
+    var questionPool=emojiBuildQuestionPool(emojiGame.mode);
+    var needed=emojiGame.teams.length*5;
+    if(questionPool.length<needed){showToast('⚠️ Not enough puzzles for this configuration.');return}
+
+    emojiGame.questions=emojiShuffle(questionPool).slice(0,needed);
+    emojiGame.questionIndex=0;
+    emojiGame.currentTeamIndex=0;
+    emojiGame.attemptsLeft=3;
+    emojiGame.hintUsed=false;
+    emojiGame.results=[];
+    emojiGame.transitioning=false;
+    emojiGame.lastConfig={mode:emojiGame.mode,teams:emojiGame.teams.map(function(t){return{name:t.name,color:t.color,bg:t.bg,border:t.border,members:t.members.slice(),captain:t.captain}})};
+
+    emojiGame.teams.forEach(function(t){t.score=0});
+    $('emojiSetupScreen').style.display='none';
+    $('emojiPlayScreen').style.display='block';
+    emojiLoadQuestion();
+}
+
+function emojiLoadQuestion(){
+    var q=emojiGame.questions[emojiGame.questionIndex],team=emojiGame.teams[emojiGame.currentTeamIndex];
+    emojiGame.attemptsLeft=3;
+    emojiGame.hintUsed=false;
+    $('emojiCategoryBadge').textContent=q.category;
+    $('emojiWordHint').textContent=emojiWordHint(q.answer);
+    $('emojiPuzzleDisplay').textContent=q.emoji;
+    $('emojiHintBox').style.display='none';
+    $('emojiHintBox').textContent='';
+    $('emojiGuessInput').value='';
+    $('emojiGuessInput').disabled=false;
+    $('emojiGuessBtn').disabled=false;
+    $('emojiHintBtn').disabled=false;
+    $('emojiSkipBtn').disabled=false;
+    $('emojiTurnBanner').style.borderColor=team.color;
+    $('emojiTurnBanner').style.background=rgbaFromHex(team.color,0.2);
+    $('emojiTurnBanner').style.color=team.color;
+    $('emojiTurnBanner').innerHTML='Turn: <strong>'+esc(team.name)+'</strong> · 👑 '+esc(team.captain||'Captain')+' · Attempts: '+emojiGame.attemptsLeft;
+    $('emojiRoundLabel').textContent='Round '+(emojiGame.questionIndex+1)+' / '+emojiGame.questions.length;
+    emojiRenderScoreboard();
+    emojiSetFeedback('Type your guess and hit Enter.','neutral');
+    setTimeout(function(){$('emojiGuessInput').focus()},80);
+}
+
+function emojiRenderScoreboard(){
+    var html='';
+    emojiGame.teams.forEach(function(t,i){
+        var active=i===emojiGame.currentTeamIndex;
+        html+='<div class="emoji-score-chip" style="border-color:'+(active?t.color:'rgba(255,255,255,0.08)')+';'+(active?'box-shadow:0 6px 20px '+rgbaFromHex(t.color,0.25)+';':'')+'">'+
+            '<div class="emoji-score-name" style="color:'+t.color+'">'+esc(t.name)+'</div>'+
+            '<div class="emoji-score-members">'+esc(t.members.join(', '))+'</div>'+
+            '<div class="emoji-score-value">'+t.score+' pts</div></div>';
+    });
+    $('emojiScoreboard').innerHTML=html;
+}
+
+function emojiSetFeedback(msg,type){
+    var el=$('emojiFeedback');
+    el.className='emoji-feedback '+(type||'neutral');
+    el.innerHTML=msg;
+}
+
+function emojiNormalizeAnswer(text){
+    return (text||'').toLowerCase().replace(/[^a-z0-9\s]/g,' ').replace(/\s+/g,' ').trim();
+}
+
+function emojiLevenshtein(a,b){
+    var m=a.length,n=b.length;
+    if(!m)return n;if(!n)return m;
+    var dp=[];
+    for(var i=0;i<=m;i++){dp[i]=[];for(var j=0;j<=n;j++)dp[i][j]=0}
+    for(var x=0;x<=m;x++)dp[x][0]=x;
+    for(var y=0;y<=n;y++)dp[0][y]=y;
+    for(var r=1;r<=m;r++){
+        for(var c=1;c<=n;c++){
+            var cost=a[r-1]===b[c-1]?0:1;
+            dp[r][c]=Math.min(dp[r-1][c]+1,dp[r][c-1]+1,dp[r-1][c-1]+cost);
+        }
+    }
+    return dp[m][n];
+}
+
+function emojiIsCorrectGuess(guess,answer){
+    var ng=emojiNormalizeAnswer(guess),na=emojiNormalizeAnswer(answer);
+    if(!ng||!na)return false;
+    if(ng===na)return true;
+    var cg=ng.replace(/\s+/g,''),ca=na.replace(/\s+/g,'');
+    if(ca.indexOf(cg)>=0&&cg.length>=Math.ceil(ca.length*0.6))return true;
+    if(cg.indexOf(ca)>=0&&ca.length>=Math.ceil(cg.length*0.6))return true;
+    if(emojiLevenshtein(cg,ca)<=2)return true;
+    return false;
+}
+
+function emojiRecordResult(status,guess,points){
+    var q=emojiGame.questions[emojiGame.questionIndex],team=emojiGame.teams[emojiGame.currentTeamIndex];
+    emojiGame.results.push({emoji:q.emoji,answer:q.answer,category:q.category,team:team.name,teamColor:team.color,status:status,guess:guess||'',points:points||0});
+}
+
+function emojiSubmitGuess(){
+    if(emojiGame.transitioning)return;
+    var input=$('emojiGuessInput'),guess=input.value.trim();
+    if(!guess)return;
+    var q=emojiGame.questions[emojiGame.questionIndex],team=emojiGame.teams[emojiGame.currentTeamIndex];
+    if(emojiIsCorrectGuess(guess,q.answer)){
+        var points=10+(emojiGame.hintUsed?0:5)+(emojiGame.attemptsLeft===3?5:0);
+        team.score+=points;
+        emojiRecordResult('correct',guess,points);
+        emojiRenderScoreboard();
+        emojiSetFeedback('✅ Correct! <strong>'+esc(q.answer)+'</strong> · +'+points+' pts','correct');
+        launchTeamConfetti(team.color);
+        emojiFinalizeQuestion(1800);
+        return;
+    }
+
+    emojiGame.attemptsLeft--;
+    $('emojiTurnBanner').innerHTML='Turn: <strong>'+esc(team.name)+'</strong> · 👑 '+esc(team.captain||'Captain')+' · Attempts: '+emojiGame.attemptsLeft;
+    if(emojiGame.attemptsLeft>0){
+        emojiSetFeedback('❌ Not quite. '+emojiGame.attemptsLeft+' attempt'+(emojiGame.attemptsLeft!==1?'s':'')+' left.','wrong');
+        input.value='';
+        setTimeout(function(){input.focus()},80);
+        return;
+    }
+
+    emojiRecordResult('wrong',guess,0);
+    emojiSetFeedback('❌ Out of attempts. Correct answer: <strong>'+esc(q.answer)+'</strong>','wrong');
+    emojiFinalizeQuestion(2200);
+}
+
+function emojiUseHint(){
+    if(emojiGame.transitioning||emojiGame.hintUsed)return;
+    var team=emojiGame.teams[emojiGame.currentTeamIndex],q=emojiGame.questions[emojiGame.questionIndex];
+    emojiGame.hintUsed=true;
+    team.score=team.score-5;
+    $('emojiHintBtn').disabled=true;
+    $('emojiHintBox').style.display='block';
+    $('emojiHintBox').innerHTML='💡 '+esc(q.hint)+' <span style="opacity:0.7">(-5 pts)</span>';
+    emojiRenderScoreboard();
+    emojiSetFeedback('💡 Hint used. '+esc(team.name)+' loses 5 points.','hint');
+}
+
+function emojiSkip(){
+    if(emojiGame.transitioning)return;
+    var q=emojiGame.questions[emojiGame.questionIndex];
+    emojiRecordResult('skip','',0);
+    emojiSetFeedback('⏭️ Skipped. Correct answer: <strong>'+esc(q.answer)+'</strong>','skip');
+    emojiFinalizeQuestion(1800);
+}
+
+function emojiDisableControls(disabled){
+    $('emojiGuessInput').disabled=disabled;
+    $('emojiGuessBtn').disabled=disabled;
+    $('emojiHintBtn').disabled=disabled;
+    $('emojiSkipBtn').disabled=disabled;
+}
+
+function emojiFinalizeQuestion(waitMs){
+    emojiGame.transitioning=true;
+    emojiDisableControls(true);
+    setTimeout(function(){emojiAdvanceTurn()},waitMs);
+}
+
+function emojiAdvanceTurn(){
+    var nextTeamIndex=(emojiGame.currentTeamIndex+1)%emojiGame.teams.length;
+    var nextQuestionIndex=emojiGame.questionIndex+1;
+    if(nextQuestionIndex>=emojiGame.questions.length){emojiShowEndScreen();return}
+
+    var nextTeam=emojiGame.teams[nextTeamIndex];
+    $('emojiTransitionCard').style.border='1px solid '+rgbaFromHex(nextTeam.color,0.5);
+    $('emojiTransitionCard').style.color=nextTeam.color;
+    $('emojiTransitionCard').style.background=rgbaFromHex(nextTeam.color,0.15);
+    $('emojiTransitionCard').innerHTML='Next up: '+esc(nextTeam.name)+'!';
+    $('emojiTransitionOverlay').classList.add('active');
+
+    setTimeout(function(){
+        $('emojiTransitionOverlay').classList.remove('active');
+        emojiGame.currentTeamIndex=nextTeamIndex;
+        emojiGame.questionIndex=nextQuestionIndex;
+        emojiGame.transitioning=false;
+        emojiLoadQuestion();
+    },1500);
+}
+
+function emojiShowEndScreen(){
+    emojiGame.transitioning=false;
+    var sorted=emojiGame.teams.slice().sort(function(a,b){return b.score-a.score});
+    var title='🎉 Game Over!';
+    if(sorted.length>1){
+        var diff=sorted[0].score-sorted[1].score;
+        if(diff<=10)title='🔥 What a Close Game!';
+        else if((sorted[1].score===0&&sorted[0].score>=15)||(sorted[1].score>0&&sorted[0].score>=sorted[1].score*1.5))title='🏆 Dominant Victory!';
+    }
+
+    var medals=['🥇','🥈','🥉'];
+    var ranks='<div class="emoji-rank-list">';
+    sorted.forEach(function(t,idx){
+        ranks+='<div class="emoji-rank-item" style="border-color:'+rgbaFromHex(t.color,0.5)+'">'+
+            '<div class="emoji-rank-left"><span>'+(idx===0?'👑':(medals[idx]||'🏅'))+'</span><div style="min-width:0"><div class="emoji-rank-name" style="color:'+t.color+'">'+esc(t.name)+'</div><div class="emoji-rank-members">'+esc(t.members.join(', '))+'</div></div></div>'+
+            '<div class="emoji-rank-score">'+t.score+' pts</div></div>';
+    });
+    ranks+='</div>';
+
+    var statusIcon={correct:'✅',wrong:'❌',skip:'⏭️'};
+    var logHtml=emojiGame.results.map(function(r){
+        return '<div class="emoji-result-row">'+
+            '<div class="emoji-result-emoji">'+esc(r.emoji)+'</div>'+
+            '<div class="emoji-result-main"><div class="emoji-result-answer">'+esc(r.answer)+'</div><div class="emoji-result-meta" style="color:'+r.teamColor+'">'+esc(r.team)+' · '+esc(r.category)+'</div></div>'+
+            '<div class="emoji-result-status">'+(statusIcon[r.status]||'❔')+'</div></div>';
+    }).join('');
+
+    $('emojiEndModal').innerHTML='<div class="emoji-end-title">'+title+'</div>'+ranks+
+        '<div class="emoji-results-title">Round History</div><div class="emoji-results-log">'+logHtml+'</div>'+
+        '<div class="emoji-end-actions">'+
+            '<button class="emoji-end-btn play" onclick="emojiPlayAgain()">🔄 Play Again</button>'+
+            '<button class="emoji-end-btn rematch" onclick="emojiRematch()">🔁 Rematch</button>'+
+            '<button class="emoji-end-btn home" onclick="emojiBackToHome()">🏠 Back to Home</button>'+
+        '</div>';
+    $('emojiEndOverlay').classList.add('active');
+    launchTeamConfetti(sorted[0].color||'#ffd200');
+}
+
+function emojiPlayAgain(){
+    $('emojiEndOverlay').classList.remove('active');
+    var shared=getSharedTeamsForGames();
+    if(shared.length<2||shared.length>4){showToast('⚠️ Setup teams in sidebar (2-4) to play again.');emojiBackToHome();return}
+    emojiGame.teams=shared.map(function(t){return{name:t.name,color:t.color,bg:t.bg,border:t.border,members:t.members.slice(),captain:t.captain,score:0}});
+    $('emojiSetupScreen').style.display='block';
+    $('emojiPlayScreen').style.display='none';
+    emojiRenderSetup();
+    emojiSetMode(emojiGame.mode);
+}
+
+function emojiRematch(){
+    if(!emojiGame.lastConfig)return emojiPlayAgain();
+    $('emojiEndOverlay').classList.remove('active');
+    emojiGame.mode=emojiGame.lastConfig.mode;
+    emojiGame.teams=emojiGame.lastConfig.teams.map(function(t){return{name:t.name,color:t.color,bg:t.bg,border:t.border,members:t.members.slice(),captain:t.captain,score:0}});
+    $('emojiSetupScreen').style.display='none';
+    $('emojiPlayScreen').style.display='block';
+    emojiBeginGame();
+}
+
+function emojiEndGameEarly(){if(confirm('End this game and see results?'))emojiShowEndScreen()}
+
+function emojiBackToHome(){
+    $('emojiEndOverlay').classList.remove('active');
+    $('emojiTransitionOverlay').classList.remove('active');
+    $('emojiGame').classList.remove('active');
+    $('mainPage').classList.remove('hidden');
+}
+
+function launchTeamConfetti(primaryColor){
+    var cv=$('confetti-canvas'),ctx=cv.getContext('2d');
+    cv.width=window.innerWidth;cv.height=window.innerHeight;
+    var palette=[primaryColor||'#ffd200','#ffd200','#ffffff','#74b9ff','#fd79a8'];
+    var particles=[];
+    for(var i=0;i<140;i++)particles.push({x:Math.random()*cv.width,y:Math.random()*cv.height-cv.height,w:Math.random()*9+4,h:Math.random()*6+3,color:palette[Math.floor(Math.random()*palette.length)],vy:Math.random()*3+2,vx:Math.random()*2-1,rot:Math.random()*360,rv:Math.random()*10-5,op:1});
+    var f=0,max=160;
+    function frame(){
+        ctx.clearRect(0,0,cv.width,cv.height);
+        f++;
+        particles.forEach(function(p){p.y+=p.vy;p.x+=p.vx;p.rot+=p.rv;if(f>max-45)p.op-=0.022;ctx.save();ctx.translate(p.x,p.y);ctx.rotate(p.rot*Math.PI/180);ctx.globalAlpha=Math.max(p.op,0);ctx.fillStyle=p.color;ctx.fillRect(-p.w/2,-p.h/2,p.w,p.h);ctx.restore()});
+        if(f<max)requestAnimationFrame(frame);else ctx.clearRect(0,0,cv.width,cv.height);
+    }
+    frame();
+}
+
+// ==================== CONFETTI ====================
+function launchConfetti(){var cv=$('confetti-canvas'),ctx=cv.getContext('2d');cv.width=window.innerWidth;cv.height=window.innerHeight;var ps=[],cols=['#ff6b6b','#feca57','#55efc4','#a29bfe','#fd79a8','#00cec9','#ffd700','#e84393'];for(var i=0;i<180;i++)ps.push({x:Math.random()*cv.width,y:Math.random()*cv.height-cv.height,w:Math.random()*10+5,h:Math.random()*6+3,color:cols[Math.floor(Math.random()*cols.length)],vy:Math.random()*3+2,vx:Math.random()*2-1,rot:Math.random()*360,rv:Math.random()*10-5,op:1});var f=0,mx=200;function anim(){ctx.clearRect(0,0,cv.width,cv.height);f++;ps.forEach(function(p){p.y+=p.vy;p.x+=p.vx;p.rot+=p.rv;if(f>mx-60)p.op-=0.016;ctx.save();ctx.translate(p.x,p.y);ctx.rotate(p.rot*Math.PI/180);ctx.globalAlpha=Math.max(p.op,0);ctx.fillStyle=p.color;ctx.fillRect(-p.w/2,-p.h/2,p.w,p.h);ctx.restore()});if(f<mx)requestAnimationFrame(anim);else ctx.clearRect(0,0,cv.width,cv.height)}anim()}
+window.addEventListener('resize',function(){
+    var c=$('confetti-canvas');
+    c.width=window.innerWidth;
+    c.height=window.innerHeight;
+    if($('wofGame').classList.contains('active')){
+        wofDrawWheel();
+        wofRender();
+    }
+});
+</script>
+</body>
+</html>
