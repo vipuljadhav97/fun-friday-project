@@ -1135,16 +1135,6 @@
 
 <script>
 // ==================== PUZZLE DATA ====================
-const WOF_PUZZLES=[
-{category:"Bollywood",phrase:"DILWALE DULHANIA LE JAYENGE"},{category:"Bollywood",phrase:"SHOLAY"},{category:"Bollywood",phrase:"THREE IDIOTS"},{category:"Bollywood",phrase:"KABHI KHUSHI KABHIE GHAM"},{category:"Bollywood",phrase:"DANGAL"},{category:"Bollywood",phrase:"BAJRANGI BHAIJAAN"},{category:"Bollywood",phrase:"ZINDAGI NA MILEGI DOBARA"},{category:"Bollywood",phrase:"QUEEN"},{category:"Bollywood",phrase:"ANDAZ APNA APNA"},{category:"Bollywood",phrase:"DIL CHAHTA HAI"},{category:"Bollywood",phrase:"LAGAAN"},{category:"Bollywood",phrase:"MUGHAL E AZAM"},
-{category:"Hollywood",phrase:"THE DARK KNIGHT"},{category:"Hollywood",phrase:"INCEPTION"},{category:"Hollywood",phrase:"TITANIC"},{category:"Hollywood",phrase:"AVENGERS ENDGAME"},{category:"Hollywood",phrase:"THE LION KING"},{category:"Hollywood",phrase:"JURASSIC PARK"},
-{category:"Indian Landmarks",phrase:"TAJ MAHAL AGRA"},{category:"Indian Landmarks",phrase:"GATEWAY OF INDIA MUMBAI"},{category:"Indian Landmarks",phrase:"RED FORT DELHI"},{category:"Indian Landmarks",phrase:"HAWA MAHAL JAIPUR"},{category:"Indian Landmarks",phrase:"GOLDEN TEMPLE AMRITSAR"},{category:"Indian Landmarks",phrase:"CHARMINAR HYDERABAD"},{category:"Indian Landmarks",phrase:"QUTUB MINAR DELHI"},
-{category:"Desi Food",phrase:"BUTTER CHICKEN"},{category:"Desi Food",phrase:"PANI PURI"},{category:"Desi Food",phrase:"MASALA DOSA"},{category:"Desi Food",phrase:"BIRYANI"},{category:"Desi Food",phrase:"CHOLE BHATURE"},{category:"Desi Food",phrase:"GULAB JAMUN"},{category:"Desi Food",phrase:"RAJMA CHAWAL"},
-{category:"Indian Festivals",phrase:"DIWALI FESTIVAL OF LIGHTS"},{category:"Indian Festivals",phrase:"HOLI FESTIVAL OF COLORS"},{category:"Indian Festivals",phrase:"NAVRATRI GARBA NIGHTS"},{category:"Indian Festivals",phrase:"GANESH CHATURTHI"},{category:"Indian Festivals",phrase:"DURGA PUJA"},{category:"Indian Festivals",phrase:"MAKAR SANKRANTI KITES"},
-{category:"Famous Personalities",phrase:"MAHATMA GANDHI"},{category:"Famous Personalities",phrase:"SACHIN TENDULKAR"},{category:"Famous Personalities",phrase:"APJ ABDUL KALAM"},{category:"Famous Personalities",phrase:"AMITABH BACHCHAN"},{category:"Famous Personalities",phrase:"LATA MANGESHKAR"},{category:"Famous Personalities",phrase:"VIRAT KOHLI"},
-{category:"Hindi Phrases",phrase:"ATITHI DEVO BHAVA"},{category:"Hindi Phrases",phrase:"SATYAMEV JAYATE"},{category:"Hindi Phrases",phrase:"VASUDHAIVA KUTUMBAKAM"},{category:"Hindi Phrases",phrase:"JAI HIND"},
-{category:"English Phrases",phrase:"UNITY IN DIVERSITY"},{category:"English Phrases",phrase:"INCREDIBLE INDIA"},{category:"English Phrases",phrase:"KNOWLEDGE IS POWER"},{category:"English Phrases",phrase:"THE SHOW MUST GO ON"}
-];
 const WOF_SEGMENTS=[
 {label:"₹1,000",value:1000,type:"cash",color:"#e74c3c"},{label:"₹1,500",value:1500,type:"cash",color:"#3498db"},{label:"₹2,000",value:2000,type:"cash",color:"#2ecc71"},{label:"₹2,500",value:2500,type:"cash",color:"#e67e22"},{label:"₹3,000",value:3000,type:"cash",color:"#9b59b6"},{label:"₹3,500",value:3500,type:"cash",color:"#1abc9c"},{label:"₹4,000",value:4000,type:"cash",color:"#f39c12"},{label:"₹5,000",value:5000,type:"cash",color:"#16a085"},
 {label:"BANKRUPT",value:0,type:"bankrupt",color:"#111"},{label:"₹6,000",value:6000,type:"cash",color:"#2980b9"},{label:"₹7,500",value:7500,type:"cash",color:"#8e44ad"},{label:"₹8,000",value:8000,type:"cash",color:"#c0392b"},
@@ -1167,6 +1157,24 @@ function $(id){return document.getElementById(id)}
 function esc(s){var d=document.createElement('div');d.textContent=s;return d.innerHTML}
 function showToast(m){var t=$('toast');t.textContent=m;t.classList.add('show');setTimeout(function(){t.classList.remove('show')},2500)}
 function rupees(n){return '₹'+n.toLocaleString('en-IN')}
+document.addEventListener('contextmenu',function(e){e.preventDefault()})
+
+async function fetchJson(url,payload){
+    var res=await fetch(url,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload||{})});
+    var data=await res.json();
+    if(!res.ok||!data||data.success===false)throw new Error(data&&data.error?data.error:'Request failed');
+    return data;
+}
+
+async function wofFetchPuzzle(usedIds){
+    var data=await fetchJson('/api/puzzle/wof/random',{used_ids:usedIds||[]});
+    return data.puzzle||null;
+}
+
+async function emojiFetchQuestions(mode,count){
+    var data=await fetchJson('/api/puzzle/emoji/questions',{mode:mode,count:count});
+    return data.questions||[];
+}
 
 // ==================== LOCALSTORAGE PERSISTENCE ====================
 var _inRoom=!!new URLSearchParams(window.location.search).get('code');
@@ -1310,21 +1318,21 @@ function wofDrawWheel(){
 }
 
 // Spin
-function wofSpin(){if(wof.phase!=='idle')return;wof.phase='spinning';var extra=5+Math.random()*5,randA=Math.random()*360,total=extra*360+randA;wof.wheelAngle+=total;var cv=$('wofWheelCanvas');cv.style.transition='transform 4s cubic-bezier(0.17,0.67,0.12,0.99)';cv.style.transform='rotate('+wof.wheelAngle+'deg)';wofRender();setTimeout(function(){var norm=wof.wheelAngle%360,pa=(360-norm%360)%360,si=Math.floor(pa/(360/WOF_SEGMENTS.length)),seg=WOF_SEGMENTS[si%WOF_SEGMENTS.length];wofHandleResult(seg)},4300)}
-function wofHandleResult(seg){var tm=wof.teams[wof.teamIdx],tc=WOF_TEAM_COLORS[wof.teamIdx].hex,tn=esc(tm.name);if(seg.type==='cash'){wof.spinVal=seg.value;wof.phase='guessing';wofSetStatus('<strong style="color:'+tc+'">'+tn+'</strong> landed on <strong style="color:#ffd700">'+seg.label+'</strong>! 🎉 Pick a consonant.')}else if(seg.type==='bankrupt'){tm.bank=0;wof.spinVal=0;wofSetStatus('<strong style="color:'+tc+'">'+tn+'</strong> hit <strong style="color:#ff6b6b">BANKRUPT</strong>! 💸 Round bank wiped. Turn passes.');setTimeout(function(){wofPassTurn()},1800)}else if(seg.type==='loseturn'){wof.spinVal=0;wofSetStatus('<strong style="color:'+tc+'">'+tn+'</strong> hit <strong>LOSE A TURN</strong>! 😬 Turn passes.');setTimeout(function(){wofPassTurn()},1800)}else if(seg.type==='freevowel'){var uv=[];for(var i=0;i<VOWELS.length;i++){var v=VOWELS[i];if(!wof.used.has(v)&&wof.puzzle.phrase.indexOf(v)>=0)uv.push(v)}if(uv.length){wof.freeVowel=true;wof.phase='buying_vowel';wofSetStatus('<strong style="color:'+tc+'">'+tn+'</strong> got a <strong style="color:#e84393">FREE VOWEL</strong>! 🎁 Pick a vowel.')}else{wofSetStatus('<strong style="color:'+tc+'">'+tn+'</strong> got FREE VOWEL, but none remain! Spin again.');wof.phase='idle'}}wofRender()}
+function wofSpin(){if(wof.phase!=='idle')return;if(!wof.puzzle){showToast('⚠️ Puzzle is loading...');return}wof.phase='spinning';var extra=5+Math.random()*5,randA=Math.random()*360,total=extra*360+randA;wof.wheelAngle+=total;var cv=$('wofWheelCanvas');cv.style.transition='transform 4s cubic-bezier(0.17,0.67,0.12,0.99)';cv.style.transform='rotate('+wof.wheelAngle+'deg)';wofRender();setTimeout(function(){var norm=wof.wheelAngle%360,pa=(360-norm%360)%360,si=Math.floor(pa/(360/WOF_SEGMENTS.length)),seg=WOF_SEGMENTS[si%WOF_SEGMENTS.length];wofHandleResult(seg)},4300)}
+function wofHandleResult(seg){var tm=wof.teams[wof.teamIdx],tc=WOF_TEAM_COLORS[wof.teamIdx].hex,tn=esc(tm.name);if(seg.type==='cash'){wof.spinVal=seg.value;wof.phase='guessing';wofSetStatus('<strong style="color:'+tc+'">'+tn+'</strong> landed on <strong style="color:#ffd700">'+seg.label+'</strong>! 🎉 Pick a consonant.')}else if(seg.type==='bankrupt'){tm.bank=0;wof.spinVal=0;wofSetStatus('<strong style="color:'+tc+'">'+tn+'</strong> hit <strong style="color:#ff6b6b">BANKRUPT</strong> 💸 Round bank wiped. Turn passes.');setTimeout(function(){wofPassTurn()},1800)}else if(seg.type==='loseturn'){wof.spinVal=0;wofSetStatus('<strong style="color:'+tc+'">'+tn+'</strong> hit <strong>LOSE A TURN</strong> 😬 Turn passes.');setTimeout(function(){wofPassTurn()},1800)}else if(seg.type==='freevowel'){var uv=[];for(var i=0;i<VOWELS.length;i++){var v=VOWELS[i];if(!wof.used.has(v)&&wof.puzzle.phrase.indexOf(v)>=0)uv.push(v)}if(uv.length){wof.freeVowel=true;wof.phase='buying_vowel';wofSetStatus('<strong style="color:'+tc+'">'+tn+'</strong> got a <strong style="color:#e84393">FREE VOWEL</strong> 🎁 Pick a vowel.')}else{wofSetStatus('<strong style="color:'+tc+'">'+tn+'</strong> got FREE VOWEL, but none remain! Spin again.');wof.phase='idle'}}wofRender()}
 
 // Guess Letter
-function wofGuess(letter){if(wof.solveOpen)return;var ae=document.activeElement;if(ae&&(ae.tagName==='INPUT'||ae.tagName==='TEXTAREA'))return;letter=letter.toUpperCase();if(!/^[A-Z]$/.test(letter)||wof.used.has(letter))return;var isV=VOWELS.indexOf(letter)>=0,tm=wof.teams[wof.teamIdx],tc=WOF_TEAM_COLORS[wof.teamIdx].hex,tn=esc(tm.name);if(wof.phase==='guessing'){if(isV){showToast('Pick a consonant!');return}wof.used.add(letter);var cnt=wofCount(letter);if(cnt>0){wofReveal(letter);var earned=cnt*wof.spinVal;tm.bank+=earned;wofSetStatus('<strong style="color:'+tc+'">'+tn+'</strong> found <strong>'+cnt+'</strong> × <strong>'+letter+'</strong>! Earned <strong style="color:#ffd700">'+rupees(earned)+'</strong>! 🎉');wof.phase='idle';wof.spinVal=0;if(wofSolved()){wofWinRound();return}}else{wofSetStatus('<strong style="color:'+tc+'">'+tn+'</strong> guessed <strong>'+letter+'</strong> — not found! ❌ Turn passes.');wof.phase='idle';wof.spinVal=0;setTimeout(function(){wofPassTurn()},1500)}}else if(wof.phase==='buying_vowel'){if(!isV){showToast('Pick a vowel!');return}if(!wof.freeVowel){if(tm.bank<5000){showToast('Need ₹5,000!');return}tm.bank-=5000}wof.used.add(letter);var cnt=wofCount(letter);if(cnt>0){wofReveal(letter);wofSetStatus('<strong style="color:'+tc+'">'+tn+'</strong> found <strong>'+cnt+'</strong> × <strong>'+letter+'</strong>! 🎉');wof.freeVowel=false;wof.phase='idle';if(wofSolved()){wofWinRound();return}}else{var cost=wof.freeVowel?'No cost.':''+rupees(5000)+' deducted.';wofSetStatus('<strong style="color:'+tc+'">'+tn+'</strong> guessed <strong>'+letter+'</strong> — not found! ❌ '+cost+' Turn passes.');wof.freeVowel=false;wof.phase='idle';setTimeout(function(){wofPassTurn()},1500)}}wofRender()}
+function wofGuess(letter){if(wof.solveOpen||!wof.puzzle)return;var ae=document.activeElement;if(ae&&(ae.tagName==='INPUT'||ae.tagName==='TEXTAREA'))return;letter=letter.toUpperCase();if(!/^[A-Z]$/.test(letter)||wof.used.has(letter))return;var isV=VOWELS.indexOf(letter)>=0,tm=wof.teams[wof.teamIdx],tc=WOF_TEAM_COLORS[wof.teamIdx].hex,tn=esc(tm.name);if(wof.phase==='guessing'){if(isV){showToast('Pick a consonant!');return}wof.used.add(letter);var cnt=wofCount(letter);if(cnt>0){wofReveal(letter);var earned=cnt*wof.spinVal;tm.bank+=earned;wofSetStatus('<strong style="color:'+tc+'">'+tn+'</strong> found <strong>'+cnt+'</strong> × <strong>'+letter+'</strong> Earned <strong style="color:#ffd700">'+rupees(earned)+'</strong> 🎉');wof.phase='idle';wof.spinVal=0;if(wofSolved()){wofWinRound();return}}else{wofSetStatus('<strong style="color:'+tc+'">'+tn+'</strong> guessed <strong>'+letter+'</strong> — not found! ❌ Turn passes.');wof.phase='idle';wof.spinVal=0;setTimeout(function(){wofPassTurn()},1500)}}else if(wof.phase==='buying_vowel'){if(!isV){showToast('Pick a vowel!');return}if(!wof.freeVowel){if(tm.bank<5000){showToast('Need ₹5,000!');return}tm.bank-=5000}wof.used.add(letter);var cnt=wofCount(letter);if(cnt>0){wofReveal(letter);wofSetStatus('<strong style="color:'+tc+'">'+tn+'</strong> found <strong>'+cnt+'</strong> × <strong>'+letter+'</strong> 🎉');wof.freeVowel=false;wof.phase='idle';if(wofSolved()){wofWinRound();return}}else{var cost=wof.freeVowel?'No cost.':''+rupees(5000)+' deducted.';wofSetStatus('<strong style="color:'+tc+'">'+tn+'</strong> guessed <strong>'+letter+'</strong> — not found! ❌ '+cost+' Turn passes.');wof.freeVowel=false;wof.phase='idle';setTimeout(function(){wofPassTurn()},1500)}}wofRender()}
 function wofCount(l){var c=0;for(var i=0;i<wof.puzzle.phrase.length;i++)if(wof.puzzle.phrase[i]===l)c++;return c}
 function wofReveal(l){wof.revealed.add(l);setTimeout(wofRender,50)}
 function wofSolved(){for(var i=0;i<wof.puzzle.phrase.length;i++){var ch=wof.puzzle.phrase[i];if(/[A-Z]/.test(ch)&&!wof.revealed.has(ch))return false}return true}
 
 // Buy Vowel Button
-function wofBuyVowel(){if(wof.phase!=='idle'&&wof.phase!=='guessing')return;var tm=wof.teams[wof.teamIdx];if(tm.bank<5000){showToast('Need ₹5,000!');return}var hasV=false;for(var i=0;i<VOWELS.length;i++)if(!wof.used.has(VOWELS[i]))hasV=true;if(!hasV){showToast('All vowels used!');return}wof.freeVowel=false;wof.phase='buying_vowel';var tc=WOF_TEAM_COLORS[wof.teamIdx].hex,tn=esc(wof.teams[wof.teamIdx].name);wofSetStatus('<strong style="color:'+tc+'">'+tn+'</strong> is buying a vowel for <strong style="color:#ffd700">'+rupees(5000)+'</strong>. Pick a vowel!');wofRender()}
+function wofBuyVowel(){if(!wof.puzzle)return;if(wof.phase!=='idle'&&wof.phase!=='guessing')return;var tm=wof.teams[wof.teamIdx];if(tm.bank<5000){showToast('Need ₹5,000!');return}var hasV=false;for(var i=0;i<VOWELS.length;i++)if(!wof.used.has(VOWELS[i]))hasV=true;if(!hasV){showToast('All vowels used!');return}wof.freeVowel=false;wof.phase='buying_vowel';var tc=WOF_TEAM_COLORS[wof.teamIdx].hex,tn=esc(wof.teams[wof.teamIdx].name);wofSetStatus('<strong style="color:'+tc+'">'+tn+'</strong> is buying a vowel for <strong style="color:#ffd700">'+rupees(5000)+'</strong>. Pick a vowel!');wofRender()}
 function wofSkipVowel(){if(!wof.freeVowel)return;wof.freeVowel=false;wof.phase='idle';wofSetStatus('Skipped free vowel. Spin again!');wofRender()}
 
 // Solve
-function wofOpenSolve(){if(wof.phase!=='idle'&&wof.phase!=='guessing')return;wof.solveOpen=true;$('wofSolveOverlay').classList.add('active');$('wofSolveInput').value='';setTimeout(function(){$('wofSolveInput').focus()},100)}
+function wofOpenSolve(){if(!wof.puzzle){showToast('⚠️ Puzzle is loading...');return}if(wof.phase!=='idle'&&wof.phase!=='guessing')return;wof.solveOpen=true;$('wofSolveOverlay').classList.add('active');$('wofSolveInput').value='';setTimeout(function(){$('wofSolveInput').focus()},100)}
 function wofCloseSolve(){wof.solveOpen=false;$('wofSolveOverlay').classList.remove('active')}
 function wofSubmitSolve(){var g=$('wofSolveInput').value.trim().toUpperCase();wofCloseSolve();if(!g)return;var tm=wof.teams[wof.teamIdx],tc=WOF_TEAM_COLORS[wof.teamIdx].hex,tn=esc(tm.name);if(g===wof.puzzle.phrase){for(var i=0;i<wof.puzzle.phrase.length;i++){var ch=wof.puzzle.phrase[i];if(/[A-Z]/.test(ch))wof.revealed.add(ch)}wofSetStatus('<strong style="color:'+tc+'">'+tn+'</strong> solved it! 🎉🎉🎉');wofRender();wofWinRound()}else{wofSetStatus('<strong style="color:'+tc+'">'+tn+'</strong> guessed wrong! ❌ Turn passes.');wof.phase='idle';setTimeout(function(){wofPassTurn()},1800)}}
 
@@ -1336,7 +1344,23 @@ function wofWinRound(){wof.phase='solved';var tm=wof.teams[wof.teamIdx],win=Math
 function wofNextRound(){$('wofRoundOverlay').classList.remove('active');wof.round++;wof.teams.forEach(function(t){t.bank=0});wof.teamIdx=(wof.teamIdx+1)%3;wofLoadPuzzle();wof.phase='idle';var tm=wof.teams[wof.teamIdx],tc=WOF_TEAM_COLORS[wof.teamIdx].hex;wofSetStatus('Round '+wof.round+'! <strong style="color:'+tc+'">'+esc(tm.name)+'</strong>\'s turn. Spin the wheel!');wofRender()}
 
 // Load Puzzle
-function wofLoadPuzzle(){if(wof.usedIdx.size>=WOF_PUZZLES.length)wof.usedIdx.clear();var idx;do{idx=Math.floor(Math.random()*WOF_PUZZLES.length)}while(wof.usedIdx.has(idx));wof.usedIdx.add(idx);wof.puzzle=WOF_PUZZLES[idx];wof.revealed=new Set();wof.used=new Set();wof.spinVal=0;wof.freeVowel=false}
+async function wofLoadPuzzle(){
+    try{
+        var puzzle=await wofFetchPuzzle(Array.from(wof.usedIdx));
+        if(!puzzle||!puzzle.phrase)throw new Error('Invalid puzzle response');
+        if(typeof puzzle.id==='number')wof.usedIdx.add(puzzle.id);
+        wof.puzzle={category:puzzle.category||'General',phrase:(puzzle.phrase||'').toUpperCase()};
+    }catch(e){
+        console.error('Load WoF puzzle failed:',e);
+        wof.puzzle=null;
+        showToast('⚠️ Failed to load puzzle');
+    }
+    wof.revealed=new Set();
+    wof.used=new Set();
+    wof.spinVal=0;
+    wof.freeVowel=false;
+    wofRender();
+}
 
 // End Game
 function wofShowEndGame(){$('wofRoundOverlay').classList.remove('active');wof.phase='setup';
@@ -1357,87 +1381,6 @@ function wofRenderKeyboard(){var html='',ph=wof.phase,vp=ph==='buying_vowel';'AB
 
 // ==================== ANTAKSHARI ====================
 const BOLLYWOOD_SONGS={A:['Ae Dil Hai Mushkil','Abhi Na Jao Chhod Kar','Agar Tum Saath Ho'],B:['Baharon Phool Barsao','Bol Do Na Zara','Balam Pichkari'],C:['Chaiyya Chaiyya','Chura Liya Hai Tumne','Channa Mereya'],D:['Dil To Pagal Hai','Deewana Hai Dekho','Dil Chahta Hai'],E:['Ek Ladki Ko Dekha','Enna Sona'],F:['Filhall','Fir Bhi Tumko Chaahunga'],G:['Gallan Goodiyaan','Gerua','Ghungroo'],H:['Hum Tum Ek Kamre Mein','Hawayein','Hua Hai Aaj Pehli Baar'],I:['Ishq Wala Love','Ilahi'],J:['Jab Koi Baat Bigad Jaye','Jeene Laga Hoon','Jashn-E-Bahaaraa'],K:['Kal Ho Naa Ho','Kabhi Kabhi Mere Dil Mein','Kuch Kuch Hota Hai'],L:['Lag Ja Gale','Laal Ishq','London Thumakda'],M:['Mere Rashke Qamar','Maahi Ve','Muskurane Ki Wajah'],N:['Naina Da Kya Kasoor','Nashe Si Chadh Gayi','Namo Namo'],O:['O Sajna Barkha Bahar Aayi','Oh Humsafar'],P:['Pehla Nasha','Pal Pal Dil Ke Paas','Phir Bhi Tumko Chaahunga'],Q:['Qismat Mein Jo Likha'],R:['Rang Barse','Raabta','Roop Tera Mastana'],S:['Senorita','Suraj Hua Maddham','Soch Na Sake'],T:['Tum Hi Ho','Tera Ban Jaunga','Tu Jaane Na'],U:['Udd Gaye','Uff Teri Adaa'],V:['Ve Maahi','Voh Ladki Nahi Zindagi Hai'],W:['Woh Lamhe'],X:['Try any song starting with X!'],Y:['Ye Jo Des Hai Tera','Yeh Ishq Haaye'],Z:['Zara Zara','Zaalima','Zing Zing Zingaat']};
-
-const EMOJI_MOVIE_PUZZLES=[
-    {emoji:'🦁👑🌍',answer:'The Lion King',hint:'Animated Disney classic set in the Pride Lands'},
-    {emoji:'🕐🚗⚡👴👦',answer:'Back to the Future',hint:'A time-traveling DeLorean and Doc Brown'},
-    {emoji:'🚢💎🧊',answer:'Titanic',hint:'Ship, iceberg, and "My Heart Will Go On"'},
-    {emoji:'🦖🏞️⚠️',answer:'Jurassic Park',hint:'Dinosaurs in a theme park gone wrong'},
-    {emoji:'🦇🌃🃏',answer:'The Dark Knight',hint:'Batman faces the Joker in Gotham'},
-    {emoji:'💤🧠🏙️',answer:'Inception',hint:'Dream within a dream heist'},
-    {emoji:'🙎🏻‍♂️🟩💊🕶️',answer:'The Matrix',hint:'Choose the red or blue pill'},
-    {emoji:'🐟🔍🌊',answer:'Finding Nemo',hint:'A father searches the ocean for his son'},
-    // {emoji:'👨‍👩‍👦🍝🔫',answer:'The Godfather',hint:'Mafia family saga by Coppola'},
-    {emoji:'🦍🏙️🗽',answer:'King Kong',hint:'Giant ape climbs a famous skyscraper'},
-    {emoji:'🏠👦🎄',answer:'Home Alone',hint:'Kid protects his house from burglars'},
-    {emoji:'🧸🧑‍🚀🤠🚀',answer:'Toy Story',hint:'Woody and Buzz adventure'},
-    {emoji:'❄️👭⛄',answer:'Frozen',hint:'Sisters, ice powers, and "Let It Go"'},
-    {emoji:'🧑‍🚀🌌🪐',answer:'Interstellar',hint:'Space mission to save humanity'},
-    // {emoji:'🥊🧼👥',answer:'Fight Club',hint:'The first rule is not to talk about it'},
-    {emoji:'🕵️‍♂️❌💣🛩️',answer:'Mission Impossible',hint:'Ethan Hunt action franchise'},
-    // {emoji:'📓💑🌧️',answer:'The Notebook',hint:'A romantic story told through a diary'},
-    {emoji:'💰❓👦🏽',answer:'Slumdog Millionaire',hint:'Game show and destiny in Mumbai'},
-    // {emoji:'🏃‍♂️🍫🚌',answer:'Forrest Gump',hint:'"Life is like a box of chocolates"'},
-    {emoji:'✈️🏍️🕶️🔥',answer:'Top Gun',hint:'Fighter pilot Maverick'},
-    {emoji:'🚗💨👨‍👨‍👧',answer:'Fast and Furious',hint:'Street racing and family theme'},
-    // {emoji:'🍻🤕💍',answer:'The Hangover',hint:'Bachelor party gone wild in Vegas'},
-    // {emoji:'🏐🏝️📦',answer:'Cast Away',hint:'A man stranded on an island with Wilson'},
-    {emoji:'🧙‍♂️🌀⏳',answer:'Doctor Strange',hint:'Marvel sorcerer and multiverse portals'},
-    {emoji:'🐆👑🛡️',answer:'Black Panther',hint:'Wakanda forever'},
-    {emoji:'🤖❤️🦾',answer:'Iron Man',hint:'Tony Stark builds a powered suit'},
-    // {emoji:'🎓📚🪶',answer:'Dead Poets Society',hint:'"Carpe Diem" and an inspiring teacher'},
-    {emoji:'📱💻👥',answer:'The Social Network',hint:'Origin story of a famous social media platform'},
-    {emoji:'🎹💃🌃',answer:'La La Land',hint:'Musical romance in Los Angeles'},
-    {emoji:'🧑‍🦽‍➡️🔵🌳🧑',answer:'Avatar',hint:'Pandora and the Na\'vi'},
-    {emoji:'🤠🧑‍🦯🫟🔫🔥',answer:'Sholay',hint:'Classic Bollywood action drama with Jai and Veeru'},
-    {emoji:'❤️🚆🐦🌾',answer:'Dilwale Dulhania Le Jayenge',hint:'Raj and Simran iconic romance'},
-    {emoji:'3️⃣🤪🎓',answer:'3 Idiots',hint:'Engineering college story of three friends'},
-    {emoji:'🏏💰🇮🇳',answer:'Lagaan',hint:'Villagers challenge the British in a cricket match'},
-    {emoji:'🤼‍♀️👨‍👧‍👧🏅',answer:'Dangal',hint:'Wrestling journey of a father and daughters'},
-    {emoji:'🚗🍅🛣️🌊',answer:'Zindagi Na Milegi Dobara',hint:'Road trip film about friendship and life'},
-    {emoji:'👨‍👩🙂❤️😢💔',answer:'Kabhi Khushi Kabhie Gham',hint:'Family drama with big emotions and reunion'},
-    {emoji:'👬😂💰',answer:'Andaz Apna Apna',hint:'Cult comedy with Amar and Prem'},
-    {emoji:'👑✈️🗼',answer:'Queen',hint:'A solo honeymoon transforms Rani\'s life'},
-    {emoji:'👨‍⚕️🔫🧑‍🦼😂🏥',answer:'Munna Bhai M.B.B.S.',hint:'A gangster joins medical college'},
-    {emoji:'🏑🇮🇳🙌',answer:'Chak De India',hint:'Women\'s hockey team and a comeback coach'},
-    {emoji:'🚀🏡🇮🇳💦⚡️',answer:'Swades',hint:'NASA engineer returns to his village'},
-    {emoji:'👽📻🤔',answer:'PK',hint:'An alien questions beliefs on Earth'},
-    {emoji:'🎤🏙️🔥',answer:'Gully Boy',hint:'Mumbai street rapper rises to fame'},
-    {emoji:'🎬🕺🏻💃🔥',answer:'Om Shanti Om',hint:'Reincarnation and Bollywood glamour'},
-    {emoji:'👽👦✨',answer:'Koi Mil Gaya',hint:'A boy befriends an alien named Jadoo'},
-    // {emoji:'🕵️‍♀️🇮🇳📨',answer:'Raazi',hint:'Indian spy mission across the border'},
-    // {emoji:'🧠❓👩‍🦳',answer:'Kahaani',hint:'A pregnant woman searches for her husband in Kolkata'},
-    // {emoji:'💍🚻🎭',answer:'Vicky Donor',hint:'Unusual comedy around fertility donation'},
-    // {emoji:'🎶❤️🧑‍🤝‍🧑',answer:'Rockstar',hint:'A musician\'s intense love story'}
-];
-
-const EMOJI_SONG_PUZZLES=[
-    // {emoji:'🎸🏨🦅🌙',answer:'Hotel California',hint:'Classic Eagles song about a mysterious hotel'},
-    // {emoji:'👑🎭🎤',answer:'Bohemian Rhapsody',hint:'Queen song with operatic sections'},
-    {emoji:'🔺❤️🫵',answer:'Shape of You',hint:'Ed Sheeran global hit'},
-    // {emoji:'🌃💡✨',answer:'Blinding Lights',hint:'Synth-pop track by The Weeknd'},
-    // {emoji:'🔁⭐',answer:'Counting Stars',hint:'OneRepublic chartbuster'},
-    {emoji:'🙏💭',answer:'Believer',hint:'Imagine Dragons anthem'},
-    // {emoji:'💔🌊',answer:'Rolling in the Deep',hint:'Adele power ballad'},
-    // {emoji:'🙋‍♀️❤️🫵',answer:'Someone Like You',hint:'Adele heartbreak classic'},
-    // {emoji:'📖❤️👸',answer:'Love Story',hint:'Early Taylor Swift hit inspired by Shakespeare'},
-    {emoji:'👋🚗🌅',answer:'See You Again',hint:'Tribute song from Fast and Furious 7'},
-    {emoji:'💍❤️👌',answer:'Perfect',hint:'Romantic ballad by Ed Sheeran'},
-    // {emoji:'⚡🎸',answer:'Thunderstruck',hint:'Iconic AC/DC opening riff'},
-    // {emoji:'👃Teen🧠',answer:'Smells Like Teen Spirit',hint:'Nirvana grunge anthem'},
-    {emoji:'👑🪨🫵',answer:'We Will Rock You',hint:'Stomp-stomp-clap stadium chant'},
-    // {emoji:'🍬👧🎸',answer:'Sweet Child O Mine',hint:'Guns N\' Roses classic'},
-    // {emoji:'🏙️🎺🕺',answer:'Uptown Funk',hint:'Bruno Mars dance floor favorite'},
-    // {emoji:'😈👧',answer:'Bad Guy',hint:'Billie Eilish breakthrough hit'},
-    {emoji:'🚂🌉💃',answer:'Chaiyya Chaiyya',hint:'Bollywood song shot on a moving train'},
-    {emoji:'🫵❤️🌧️',answer:'Tum Hi Ho',hint:'Aashiqui 2 superhit romantic song'},
-    {emoji:'📅✅❌✅',answer:'Kal Ho Naa Ho',hint:'Title track from Shah Rukh Khan film'},
-    {emoji:'🇮🇳🙌',answer:'Jai Ho',hint:'Oscar-winning song from Slumdog Millionaire'},
-    {emoji:'💃🕺☀️',answer:'Senorita',hint:'Popular dance track from ZNMD'},
-    {emoji:'🐯🕺🕺🔥',answer:'Naatu Naatu',hint:'High-energy dance song from RRR'},
-    {emoji:'🛳️✊🗣️🎉👫💍',answer:'Gallan Goodiyaan',hint:'Party song from Dil Dhadakne Do'},
-    {emoji:'👦⏰✅',answer:'Apna Time Aayega',hint:'Motivational rap from Gully Boy'}
-];
 
 let ak={teams:[],currentTeamIndex:0,round:1,currentLetter:null,hintUsed:false,phase:'idle',history:[],submittedSong:''};
 
@@ -1625,26 +1568,24 @@ function emojiShuffle(list){
     return arr;
 }
 
-function emojiBuildQuestionPool(mode){
-    var movies=EMOJI_MOVIE_PUZZLES.map(function(q){return{emoji:q.emoji,answer:q.answer,hint:q.hint,category:'Movie'}});
-    var songs=EMOJI_SONG_PUZZLES.map(function(q){return{emoji:q.emoji,answer:q.answer,hint:q.hint,category:'Song'}});
-    if(mode==='movies')return movies;
-    if(mode==='songs')return songs;
-    return movies.concat(songs);
-}
-
 function emojiWordHint(answer){
     var words=answer.trim().split(/\s+/).length;
     var letters=answer.replace(/[^A-Za-z0-9]/g,'').length;
     return words+' word'+(words!==1?'s':'')+' • '+letters+' letters';
 }
 
-function emojiBeginGame(){
-    var questionPool=emojiBuildQuestionPool(emojiGame.mode);
+async function emojiBeginGame(){
     var needed=emojiGame.teams.length*5;
-    if(questionPool.length<needed){showToast('⚠️ Not enough puzzles for this configuration.');return}
+    try{
+        emojiGame.questions=await emojiFetchQuestions(emojiGame.mode,needed);
+    }catch(e){
+        console.error('Load emoji questions failed:',e);
+        showToast('⚠️ Could not load puzzles right now.');
+        return;
+    }
+    if(!emojiGame.questions.length){showToast('⚠️ Not enough puzzles for this configuration.');return}
 
-    emojiGame.questions=emojiShuffle(questionPool).slice(0,needed);
+    emojiGame.questions=emojiShuffle(emojiGame.questions);
     emojiGame.questionIndex=0;
     emojiGame.currentTeamIndex=0;
     emojiGame.attemptsLeft=3;

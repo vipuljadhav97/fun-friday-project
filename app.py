@@ -4,6 +4,7 @@ import secrets
 import string
 import json
 import threading
+import random
 from datetime import datetime
 from functools import wraps
 
@@ -17,6 +18,113 @@ rooms = {}
 sid_room_map = {}
 # Grace period timers for disconnects: {(room_code, player_name): {'timer': Timer, 'player_data': {...}}}
 disconnect_timers = {}
+
+WOF_PUZZLES = [
+    {'category': 'Bollywood', 'phrase': 'DILWALE DULHANIA LE JAYENGE'},
+    {'category': 'Bollywood', 'phrase': 'SHOLAY'},
+    {'category': 'Bollywood', 'phrase': 'THREE IDIOTS'},
+    {'category': 'Bollywood', 'phrase': 'KABHI KHUSHI KABHIE GHAM'},
+    {'category': 'Bollywood', 'phrase': 'DANGAL'},
+    {'category': 'Bollywood', 'phrase': 'BAJRANGI BHAIJAAN'},
+    {'category': 'Bollywood', 'phrase': 'ZINDAGI NA MILEGI DOBARA'},
+    {'category': 'Bollywood', 'phrase': 'QUEEN'},
+    {'category': 'Bollywood', 'phrase': 'ANDAZ APNA APNA'},
+    {'category': 'Bollywood', 'phrase': 'DIL CHAHTA HAI'},
+    {'category': 'Bollywood', 'phrase': 'LAGAAN'},
+    {'category': 'Bollywood', 'phrase': 'MUGHAL E AZAM'},
+    {'category': 'Hollywood', 'phrase': 'THE DARK KNIGHT'},
+    {'category': 'Hollywood', 'phrase': 'INCEPTION'},
+    {'category': 'Hollywood', 'phrase': 'TITANIC'},
+    {'category': 'Hollywood', 'phrase': 'AVENGERS ENDGAME'},
+    {'category': 'Hollywood', 'phrase': 'THE LION KING'},
+    {'category': 'Hollywood', 'phrase': 'JURASSIC PARK'},
+    {'category': 'Indian Landmarks', 'phrase': 'TAJ MAHAL AGRA'},
+    {'category': 'Indian Landmarks', 'phrase': 'GATEWAY OF INDIA MUMBAI'},
+    {'category': 'Indian Landmarks', 'phrase': 'RED FORT DELHI'},
+    {'category': 'Indian Landmarks', 'phrase': 'HAWA MAHAL JAIPUR'},
+    {'category': 'Indian Landmarks', 'phrase': 'GOLDEN TEMPLE AMRITSAR'},
+    {'category': 'Desi Food', 'phrase': 'BUTTER CHICKEN'},
+    {'category': 'Desi Food', 'phrase': 'PANI PURI'},
+    {'category': 'Desi Food', 'phrase': 'MASALA DOSA'},
+    {'category': 'Desi Food', 'phrase': 'BIRYANI'},
+    {'category': 'Desi Food', 'phrase': 'CHOLE BHATURE'},
+    {'category': 'Indian Festivals', 'phrase': 'DIWALI FESTIVAL OF LIGHTS'},
+    {'category': 'Indian Festivals', 'phrase': 'HOLI FESTIVAL OF COLORS'},
+    {'category': 'Indian Festivals', 'phrase': 'GANESH CHATURTHI'},
+    {'category': 'Indian Festivals', 'phrase': 'DURGA PUJA'},
+    {'category': 'Famous Personalities', 'phrase': 'MAHATMA GANDHI'},
+    {'category': 'Famous Personalities', 'phrase': 'SACHIN TENDULKAR'},
+    {'category': 'Famous Personalities', 'phrase': 'APJ ABDUL KALAM'},
+    {'category': 'Famous Personalities', 'phrase': 'AMITABH BACHCHAN'},
+    {'category': 'Famous Personalities', 'phrase': 'LATA MANGESHKAR'},
+    {'category': 'Famous Personalities', 'phrase': 'VIRAT KOHLI'},
+    {'category': 'Hindi Phrases', 'phrase': 'ATITHI DEVO BHAVA'},
+    {'category': 'Hindi Phrases', 'phrase': 'SATYAMEV JAYATE'},
+    {'category': 'Hindi Phrases', 'phrase': 'VASUDHAIVA KUTUMBAKAM'},
+    {'category': 'English Phrases', 'phrase': 'UNITY IN DIVERSITY'},
+    {'category': 'English Phrases', 'phrase': 'INCREDIBLE INDIA'},
+    {'category': 'English Phrases', 'phrase': 'KNOWLEDGE IS POWER'},
+    {'category': 'English Phrases', 'phrase': 'THE SHOW MUST GO ON'},
+]
+
+EMOJI_MOVIE_PUZZLES = [
+    {'emoji': '🦁👑🌍', 'answer': 'The Lion King', 'hint': 'Animated Disney classic set in the Pride Lands'},
+    {'emoji': '🕐🚗⚡👴👦', 'answer': 'Back to the Future', 'hint': 'A time-traveling DeLorean and Doc Brown'},
+    {'emoji': '🚢💎🧊', 'answer': 'Titanic', 'hint': 'Ship, iceberg, and "My Heart Will Go On"'},
+    {'emoji': '🦖🏞️⚠️', 'answer': 'Jurassic Park', 'hint': 'Dinosaurs in a theme park gone wrong'},
+    {'emoji': '🦇🌃🃏', 'answer': 'The Dark Knight', 'hint': 'Batman faces the Joker in Gotham'},
+    {'emoji': '💤🧠🏙️', 'answer': 'Inception', 'hint': 'Dream within a dream heist'},
+    {'emoji': '🙎🏻‍♂️🟩💊🕶️', 'answer': 'The Matrix', 'hint': 'Choose the red or blue pill'},
+    {'emoji': '🐟🔍🌊', 'answer': 'Finding Nemo', 'hint': 'A father searches the ocean for his son'},
+    {'emoji': '🦍🏙️🗽', 'answer': 'King Kong', 'hint': 'Giant ape climbs a famous skyscraper'},
+    {'emoji': '🏠👦🎄', 'answer': 'Home Alone', 'hint': 'Kid protects his house from burglars'},
+    {'emoji': '🧸🧑‍🚀🤠🚀', 'answer': 'Toy Story', 'hint': 'Woody and Buzz adventure'},
+    {'emoji': '❄️👭⛄', 'answer': 'Frozen', 'hint': 'Sisters, ice powers, and "Let It Go"'},
+    {'emoji': '🧑‍🚀🌌🪐', 'answer': 'Interstellar', 'hint': 'Space mission to save humanity'},
+    {'emoji': '🕵️‍♂️❌💣🛩️', 'answer': 'Mission Impossible', 'hint': 'Ethan Hunt action franchise'},
+    {'emoji': '💰❓👦🏽', 'answer': 'Slumdog Millionaire', 'hint': 'Game show and destiny in Mumbai'},
+    {'emoji': '✈️🏍️🕶️🔥', 'answer': 'Top Gun', 'hint': 'Fighter pilot Maverick'},
+    {'emoji': '🚗💨👨‍👨‍👧', 'answer': 'Fast and Furious', 'hint': 'Street racing and family theme'},
+    {'emoji': '🧙‍♂️🌀⏳', 'answer': 'Doctor Strange', 'hint': 'Marvel sorcerer and multiverse portals'},
+    {'emoji': '🐆👑🛡️', 'answer': 'Black Panther', 'hint': 'Wakanda forever'},
+    {'emoji': '🤖❤️🦾', 'answer': 'Iron Man', 'hint': 'Tony Stark builds a powered suit'},
+    {'emoji': '📱💻👥', 'answer': 'The Social Network', 'hint': 'Origin story of a famous social media platform'},
+    {'emoji': '🎹💃🌃', 'answer': 'La La Land', 'hint': 'Musical romance in Los Angeles'},
+    {'emoji': '🧑‍🦽‍➡️🔵🌳🧑', 'answer': 'Avatar', 'hint': 'Pandora and the Navi'},
+    {'emoji': '🤠🧑‍🦯🫟🔫🔥', 'answer': 'Sholay', 'hint': 'Classic Bollywood action drama with Jai and Veeru'},
+    {'emoji': '❤️🚆🐦🌾', 'answer': 'Dilwale Dulhania Le Jayenge', 'hint': 'Raj and Simran iconic romance'},
+    {'emoji': '3️⃣🤪🎓', 'answer': '3 Idiots', 'hint': 'Engineering college story of three friends'},
+    {'emoji': '🏏💰🇮🇳', 'answer': 'Lagaan', 'hint': 'Villagers challenge the British in a cricket match'},
+    {'emoji': '🤼‍♀️👨‍👧‍👧🏅', 'answer': 'Dangal', 'hint': 'Wrestling journey of a father and daughters'},
+    {'emoji': '🚗🍅🛣️🌊', 'answer': 'Zindagi Na Milegi Dobara', 'hint': 'Road trip film about friendship and life'},
+    {'emoji': '👬😂💰', 'answer': 'Andaz Apna Apna', 'hint': 'Cult comedy with Amar and Prem'},
+]
+
+EMOJI_SONG_PUZZLES = [
+    {'emoji': '🔺❤️🫵', 'answer': 'Shape of You', 'hint': 'Ed Sheeran global hit'},
+    {'emoji': '🙏💭', 'answer': 'Believer', 'hint': 'Imagine Dragons anthem'},
+    {'emoji': '👋🚗🌅', 'answer': 'See You Again', 'hint': 'Tribute song from Fast and Furious 7'},
+    {'emoji': '💍❤️👌', 'answer': 'Perfect', 'hint': 'Romantic ballad by Ed Sheeran'},
+    {'emoji': '👑🪨🫵', 'answer': 'We Will Rock You', 'hint': 'Stomp-stomp-clap stadium chant'},
+    {'emoji': '🚂🌉💃', 'answer': 'Chaiyya Chaiyya', 'hint': 'Bollywood song shot on a moving train'},
+    {'emoji': '🫵❤️🌧️', 'answer': 'Tum Hi Ho', 'hint': 'Aashiqui 2 superhit romantic song'},
+    {'emoji': '📅✅❌✅', 'answer': 'Kal Ho Naa Ho', 'hint': 'Title track from Shah Rukh Khan film'},
+    {'emoji': '🇮🇳🙌', 'answer': 'Jai Ho', 'hint': 'Oscar-winning song from Slumdog Millionaire'},
+    {'emoji': '💃🕺☀️', 'answer': 'Senorita', 'hint': 'Popular dance track from ZNMD'},
+    {'emoji': '🐯🕺🕺🔥', 'answer': 'Naatu Naatu', 'hint': 'High-energy dance song from RRR'},
+    {'emoji': '🛳️✊🗣️🎉👫💍', 'answer': 'Gallan Goodiyaan', 'hint': 'Party song from Dil Dhadakne Do'},
+    {'emoji': '👦⏰✅', 'answer': 'Apna Time Aayega', 'hint': 'Motivational rap from Gully Boy'},
+]
+
+
+def _normalize_used_ids(raw_ids):
+    used_ids = set()
+    for value in raw_ids or []:
+        try:
+            used_ids.add(int(value))
+        except (TypeError, ValueError):
+            continue
+    return used_ids
 
 def generate_room_code(length=6):
     """Generate a random 6-character room code."""
@@ -98,6 +206,65 @@ def get_room_state(room_code):
             'team_points': room.get('current_team_points', {})
         }
     })
+
+
+@app.route('/api/puzzle/wof/random', methods=['POST'])
+def get_wof_puzzle():
+    """Return one Wheel of Fortune puzzle from the server-side bank."""
+    data = request.get_json(silent=True) or {}
+    used_ids = _normalize_used_ids(data.get('used_ids', []))
+
+    available = [(idx, puzzle) for idx, puzzle in enumerate(WOF_PUZZLES) if idx not in used_ids]
+    if not available:
+        available = list(enumerate(WOF_PUZZLES))
+
+    if not available:
+        return jsonify({'success': False, 'error': 'No puzzles configured'}), 500
+
+    puzzle_id, puzzle = random.choice(available)
+    return jsonify({
+        'success': True,
+        'puzzle': {
+            'id': puzzle_id,
+            'category': puzzle['category'],
+            'phrase': puzzle['phrase']
+        }
+    })
+
+
+@app.route('/api/puzzle/emoji/questions', methods=['POST'])
+def get_emoji_questions():
+    """Return a randomized set of emoji questions from server-side banks."""
+    data = request.get_json(silent=True) or {}
+    mode = str(data.get('mode', 'mixed')).strip().lower()
+
+    try:
+        count = int(data.get('count', 10))
+    except (TypeError, ValueError):
+        count = 10
+
+    count = max(1, min(count, 60))
+
+    movie_pool = [
+        {'emoji': q['emoji'], 'answer': q['answer'], 'hint': q['hint'], 'category': 'Movie'}
+        for q in EMOJI_MOVIE_PUZZLES
+    ]
+    song_pool = [
+        {'emoji': q['emoji'], 'answer': q['answer'], 'hint': q['hint'], 'category': 'Song'}
+        for q in EMOJI_SONG_PUZZLES
+    ]
+
+    if mode == 'movies':
+        pool = movie_pool
+    elif mode == 'songs':
+        pool = song_pool
+    else:
+        pool = movie_pool + song_pool
+
+    if count > len(pool):
+        return jsonify({'success': False, 'error': 'Not enough puzzles available'}), 400
+
+    return jsonify({'success': True, 'questions': random.sample(pool, count)})
 
 # WebSocket Events
 @socketio.on('connect')

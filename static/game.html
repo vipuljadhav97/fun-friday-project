@@ -960,6 +960,7 @@ function $(id){return document.getElementById(id)}
 function esc(s){var d=document.createElement('div');d.textContent=s;return d.innerHTML}
 function showToast(m){var t=$('toast');t.textContent=m;t.classList.add('show');setTimeout(function(){t.classList.remove('show')},2500)}
 function rupees(n){return '₹'+n.toLocaleString('en-IN')}
+document.addEventListener('contextmenu',function(e){e.preventDefault()})
 
 // ==================== LOCALSTORAGE PERSISTENCE ====================
 function savePlayers(){try{localStorage.setItem('funfridayPlayers',JSON.stringify(players))}catch(e){console.error('Save players failed:',e)}}

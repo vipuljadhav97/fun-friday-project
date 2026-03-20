@@ -306,6 +306,10 @@
     <script>
         let currentRoomCode = null;
 
+        document.addEventListener('contextmenu', function(e) {
+            e.preventDefault();
+        });
+
         async function createRoom() {
             const btn = event.target;
             btn.disabled = true;
